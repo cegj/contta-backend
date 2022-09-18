@@ -5,6 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use App\Models\Category;
 use App\Models\Account;
+use App\Models\User;
 
 
 return new class extends Migration
