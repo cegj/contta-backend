@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('description');
             $table->foreignIdFor(Category::class);
             $table->foreignIdFor(Account::class);
+            $table->foreignIdFor(User::class);
             $table->boolean('preview')->default(false);
             $table->boolean('usual');
             $table->integer('transfer_id')->nullable();
