@@ -6,6 +6,8 @@ use App\Http\Controllers\AuthController;
 
 Route::post('/create', [UserController::class, 'store']);
 Route::post('/login', [AuthController::class, 'login']);
+
+// Protected routes
 Route::group(['middleware' => ['protectedRoute']], function(){
-  Route::get('/', function(){return "Oi";});
+  Route::get('/', [AuthController::class, 'me']);
 });
