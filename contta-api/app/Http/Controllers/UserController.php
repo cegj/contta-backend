@@ -10,6 +10,14 @@ class UserController extends Controller
 {
     public function store(Request $request){
 
+        /**
+         * name: string
+         * username: string
+         * email: string
+         * password: string
+         * confirm_password: string
+         */
+
         $user = new User;
 
         // Check if fields are not empty
