@@ -25,10 +25,10 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        $credentials = $request->only(['username', 'password']);
+        $credentials = $request->only(['email', 'password']);
 
         if (! $token = auth(guard: 'api')->attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json(['error' => 'Acesso não autorizado'], 401);
         }
 
         return $this->respondWithToken($token);
@@ -41,7 +41,10 @@ class AuthController extends Controller
      */
     public function me()
     {
-        return response()->json(auth()->user());
+        $user = auth()->user();
+        $user->password = null;
+
+        return response()->json($user);
     }
 
     /**
