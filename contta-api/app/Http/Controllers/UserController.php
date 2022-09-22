@@ -72,7 +72,7 @@ class UserController extends Controller
         return response()->json(["message" => "Usuário criado com sucesso", "createdUser" => $user], 201);
 
         } catch (\Throwable $th) {
-            return response()->json(["message" => "Ocorreu um erro", "error" => $th], 500);
+            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
         }
     }
 
@@ -124,7 +124,7 @@ class UserController extends Controller
             return response()->json(["message" => "Usuário editado com sucesso", "editedUser" => $user], 200);
 
             } catch (\Throwable $th) {
-            return response()->json(["message" => "Ocorreu um erro", "error" => $th], 500);
+                return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
         }
     }
 
@@ -135,13 +135,11 @@ class UserController extends Controller
             $authUser = JWTAuth::parseToken()->toUser();
 
             User::destroy($authUser->id);
-    
-            $authUser->password = null;
-    
-            return response()->json(["message" => "Usuário excluído com sucesso", "deletedUser" => $authUser], 200);
+        
+            return response()->json(["message" => "Usuário {$authUser->email} excluído com sucesso"], 200);
 
         } catch (\Throwable $th) {
-            return response()->json(["message" => "Ocorreu um erro", "error" => $th], 500);
+            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
         }
     }
 }

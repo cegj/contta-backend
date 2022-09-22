@@ -54,7 +54,7 @@ class AccountController extends Controller
         return response()->json(["message" => "Conta criada com sucesso", "createdAccount" => $account], 201);
         
         } catch (\Throwable $th) {
-            return response()->json(["message" => "Ocorreu um erro", "error" => $th], 500);
+            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
         }
     }
 
@@ -107,7 +107,7 @@ class AccountController extends Controller
             return response()->json(["message" => "Conta editada com sucesso", "editedAccount" => $account], 200);
 
             } catch (\Throwable $th) {
-            return response()->json(["message" => "Ocorreu um erro", "error" => $th], 500);
+                return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
         }
     }
 
@@ -115,12 +115,18 @@ class AccountController extends Controller
     
         try {
 
-            Account::destroy($id);
+            $account = Account::find($id);
+
+            if (!$account){
+                return response()->json(["message" => "A conta não foi localizado (id inválido)"], 422);
+            }
+
+            $account->delete();
         
-            return response()->json(["message" => "Conta removida com sucesso"], 200);
+            return response()->json(["message" => "Conta {$account->name} removida com sucesso"], 200);
 
         } catch (\Throwable $th) {
-            return response()->json(["message" => "Ocorreu um erro", "error" => $th], 500);
+            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
         }
     }
 
@@ -139,7 +145,7 @@ class AccountController extends Controller
 
             return response()->json(["message" => "Contas recuperadas com sucesso", "accounts" => $accounts], 200);
         } catch (\Throwable $th) {
-            return response()->json(["message" => "Ocorreu um erro", "error" => $th], 500);
+            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
         }
 
     }
@@ -157,9 +163,8 @@ class AccountController extends Controller
             }
 
         } catch (\Throwable $th) {
-            return response()->json(["message" => "Ocorreu um erro", "error" => $th], 500);
+            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
         }
-
     }
 
 

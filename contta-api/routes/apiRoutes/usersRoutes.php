@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\A;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
 
 Route::post('/create', [UserController::class, 'create']);
