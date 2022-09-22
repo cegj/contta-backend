@@ -48,6 +48,8 @@ class UserController extends Controller
             return response()->json(['message' => 'O e-mail já está em uso', 'user' => $emailTaken], 422);
         }
 
+        $user = new User;
+
         //Define user has admin if there is no user yet
         if (!$user::exists()){
             $accessLevel = 1;
@@ -59,7 +61,6 @@ class UserController extends Controller
         $hashedPassword = Hash::make($request->password);
 
         //Create user at model
-        $user = new User;
         $user->name = $request->name;
         $user->email = $request->email;
         $user->password = $hashedPassword;

@@ -23,9 +23,12 @@ return new class extends Migration
             $table->string('type');
             $table->integer('value');
             $table->string('description');
-            $table->foreignIdFor(Category::class);
-            $table->foreignIdFor(Account::class);
-            $table->foreignIdFor(User::class);
+            $table->unsignedBigInteger('category_id');
+            $table->foreign('category_id')->references('id')->on('categories');
+            $table->unsignedBigInteger('account_id');
+            $table->foreign('account_id')->references('id')->on('accounts');
+            $table->unsignedBigInteger('user_id');
+            $table->foreign('user_id')->references('id')->on('users');
             $table->boolean('preview')->default(false);
             $table->boolean('usual');
             $table->integer('transfer_id')->nullable();
