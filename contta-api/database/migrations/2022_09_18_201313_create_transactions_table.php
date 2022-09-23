@@ -23,21 +23,22 @@ return new class extends Migration
             $table->string('type');
             $table->integer('value');
             $table->string('description');
-            $table->unsignedBigInteger('category_id');
+            $table->unsignedBigInteger('category_id')->nullable();
             $table->foreign('category_id')->references('id')->on('categories');
             $table->unsignedBigInteger('account_id');
             $table->foreign('account_id')->references('id')->on('accounts');
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users');
             $table->boolean('preview')->default(false);
-            $table->boolean('usual');
-            $table->integer('transfer_id')->nullable();
-            $table->integer('installments_id')->nullable();
+            $table->boolean('usual')->default(false);
+            $table->string('transfer_key')->nullable();
+            $table->string('installments_key')->nullable();
             $table->integer('installment')->nullable();
             $table->integer('total_installments')->nullable();
-
             $table->timestamps();
         });
+
+        
     }
 
     /**

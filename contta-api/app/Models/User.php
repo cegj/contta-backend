@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use App\Models\Transaction;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -34,5 +35,14 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    /**
+     * Return transactions associated to User
+     *
+     * @return array
+     */
+    public function transactions(){
+        return $this->hasMany(Transaction::class);
     }
 }

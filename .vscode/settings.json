@@ -6,7 +6,6 @@
     "contta-api/storage": true,
     "contta-api/tests": true,
     "contta-api/database/factories": true,
-    "contta-api/database/seeders": true,
     "contta-api/vendor": true,
     "contta-api/public": true,
     "contta-api/app/Console": true,
