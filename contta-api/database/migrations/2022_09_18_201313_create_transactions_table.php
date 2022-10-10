@@ -25,11 +25,11 @@ return new class extends Migration
             $table->integer('value');
             $table->string('description');
             $table->unsignedBigInteger('category_id')->nullable();
-            $table->foreign('category_id')->references('id')->on('categories');
-            $table->unsignedBigInteger('account_id');
-            $table->foreign('account_id')->references('id')->on('accounts');
-            $table->unsignedBigInteger('user_id');
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('category_id')->references('id')->on('categories')->onDelete('set null');
+            $table->unsignedBigInteger('account_id')->nullable();
+            $table->foreign('account_id')->references('id')->on('accounts')->onDelete('set null');
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
             $table->boolean('preview')->default(false);
             $table->boolean('usual')->default(false);
             $table->string('transfer_key')->nullable();
@@ -37,6 +37,10 @@ return new class extends Migration
             $table->integer('installment')->nullable();
             $table->integer('total_installments')->nullable();
             $table->timestamps();
+
+            $table->unsignedBigInteger('group_id');
+            $table->foreign('group_id')->references('id')->on('groups')->onDelete('cascade');
+
         });
 
         
