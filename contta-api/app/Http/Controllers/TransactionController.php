@@ -19,7 +19,6 @@ class TransactionController extends Controller
         return "{$date[2]}-{$date[1]}-{$date[0]}";
     }
 
-
     private function validateValue($value){
 
         $int = (int)$value;
@@ -36,7 +35,8 @@ class TransactionController extends Controller
         date_default_timezone_set('America/Sao_Paulo');
 
         /**
-         * date: string
+         * transaction_date: string
+         * payment_date: string
          * value: integer
          * description: string
          * category_id: integer
@@ -47,7 +47,8 @@ class TransactionController extends Controller
          */
 
         try {
-            $date = $request->date;
+            $transaction_date = $request->transaction_date;
+            $payment_date = $request->payment_date;
             $value = $request->value;
             $description = $request->description;
             $category_id = $request->category_id;
@@ -56,10 +57,14 @@ class TransactionController extends Controller
             $usual =  ($request->usual === true || $request->usual === "true") ? 1 : 0; //False (0) as default
             $total_installments = (int)$request->total_installments > 0 ? (int)$request->total_installments : 1; //1 (one) as default
     
-            if (!$this->validateDate($date)){
+            if (!$this->validateDate($transaction_date)){
                 return response()->json(["message" => "A data informada é inválida"], 400);
             }
     
+            if (!$this->validateDate($payment_date)){
+                return response()->json(["message" => "A data de pagamento informada é inválida"], 400);
+            }
+
             if (!$this->validateValue($value)){
                 return response()->json(["message" => "O valor da transação deve ser informado como número inteiro diferente de zero"], 400);
             }
@@ -84,13 +89,16 @@ class TransactionController extends Controller
     
             //Values who changes according to the stallment
             $installment = 1;
-            $date = new DateTime($request->date);
-            $dateStr = $date->format('Y-m-d');
+            $transaction_date = new DateTime($this->convertDate($request->transaction_date));
+            $transactionDateStr = $transaction_date->format('Y-m-d');
+            $payment_date = new DateTime($this->convertDate($request->payment_date));
+            $paymentDateStr = $payment_date->format('Y-m-d');
             $storedTransactions = [];
             
             while($installment <= $total_installments){
                 $transaction = new Transaction;
-                $transaction->date = $dateStr;
+                $transaction->transaction_date = $transactionDateStr;
+                $transaction->payment_date = $paymentDateStr;
                 $transaction->type = 'R';
                 $transaction->value = (int)$value;
                 $transaction->description = $description;
@@ -106,7 +114,8 @@ class TransactionController extends Controller
                 array_push($storedTransactions, $transaction);
     
                 //Increment values for next stallment
-                $dateStr = $date->modify("+1 month")->format('Y-m-d');
+                $transactionDateStr = $transaction_date->modify("+1 month")->format('Y-m-d');
+                $paymentDateStr = $payment_date->modify("+1 month")->format('Y-m-d');
                 $installment++;
             }
     
@@ -121,7 +130,8 @@ class TransactionController extends Controller
         date_default_timezone_set('America/Sao_Paulo');
 
         /**
-         * date: string
+         * transaction_date: string
+         * payment_date: string
          * value: integer
          * description: string
          * category_id: integer
@@ -132,7 +142,8 @@ class TransactionController extends Controller
          */
 
         try {
-            $date = $request->date;
+            $transaction_date = $request->transaction_date;
+            $payment_date = $request->payment_date;
             $value = $request->value * -1;
             $description = $request->description;
             $category_id = $request->category_id;
@@ -141,8 +152,12 @@ class TransactionController extends Controller
             $usual =  ($request->usual === true || $request->usual === "true") ? 1 : 0; //False (0) as default
             $total_installments = (int)$request->total_installments > 0 ? (int)$request->total_installments : 1; //1 (one) as default
     
-            if (!$this->validateDate($date)){
+            if (!$this->validateDate($transaction_date)){
                 return response()->json(["message" => "A data informada é inválida"], 400);
+            }
+
+            if (!$this->validateDate($payment_date)){
+                return response()->json(["message" => "A data de pagamento informada é inválida"], 400);
             }
     
             if (!$this->validateValue($value)){
@@ -169,13 +184,16 @@ class TransactionController extends Controller
     
             //Values who changes according to the stallment
             $installment = 1;
-            $date = new DateTime($this->convertDate($request->date));
-            $dateStr = $date->format('Y-m-d');
+            $transaction_date = new DateTime($this->convertDate($request->transaction_date));
+            $transactionDateStr = $transaction_date->format('Y-m-d');
+            $payment_date = new DateTime($this->convertDate($request->payment_date));
+            $paymentDateStr = $payment_date->format('Y-m-d');
             $storedTransactions = [];
             
             while($installment <= $total_installments){
                 $transaction = new Transaction;
-                $transaction->date = $dateStr;
+                $transaction->transaction_date = $transactionDateStr;
+                $transaction->payment_date = $paymentDateStr;
                 $transaction->type = 'D';
                 $transaction->value = (int)$value;
                 $transaction->description = $description;
@@ -191,7 +209,8 @@ class TransactionController extends Controller
                 array_push($storedTransactions, $transaction);
     
                 //Increment values for next stallment
-                $dateStr = $date->modify("+1 month")->format('Y-m-d');
+                $transactionDateStr = $transaction_date->modify("+1 month")->format('Y-m-d');
+                $paymentDateStr = $payment_date->modify("+1 month")->format('Y-m-d');
                 $installment++;
             }
     
@@ -206,7 +225,7 @@ class TransactionController extends Controller
         date_default_timezone_set('America/Sao_Paulo');
 
         /**
-         * date: string
+         * transaction_date: string
          * value: integer
          * description: string
          * account_id: integer
@@ -215,14 +234,14 @@ class TransactionController extends Controller
          */
 
         try {
-            $date = $request->date;
+            $transaction_date = $request->transaction_date;
             $value = $request->value;
             $description = $request->description;
             $account_id = $request->account_id;
             $destination_account_id = $request->destination_account_id;
             $usual =  ($request->usual === true || $request->usual === "true") ? 1 : 0; //False (0) as default
     
-            if (!$this->validateDate($date)){
+            if (!$this->validateDate($transaction_date)){
                 return response()->json(["message" => "A data informada é inválida"], 400);
             }
     
@@ -248,12 +267,13 @@ class TransactionController extends Controller
             // Generate installment_key if there are more than one stallment
             $transfer_key = random_int(1, 9) . time() . random_int(1, 9);
     
-            $date = new DateTime($this->convertDate($request->date));
-            $dateStr = $date->format('Y-m-d');
+            $transaction_date = new DateTime($this->convertDate($request->transaction_date));
+            $dateStr = $transaction_date->format('Y-m-d');
             $storedTransactions = [];
             
             $origin = new Transaction;
-            $origin->date = $dateStr;
+            $origin->transaction_date = $dateStr;
+            $origin->payment_date = $dateStr;
             $origin->type = 'T';
             $origin->value = (int)$value * -1;
             $origin->description = $description;
@@ -266,7 +286,8 @@ class TransactionController extends Controller
             array_push($storedTransactions, $origin);
 
             $destination = new Transaction;
-            $destination->date = $dateStr;
+            $destination->transaction_date = $dateStr;
+            $destination->payment_date = $dateStr;
             $destination->type = 'T';
             $destination->value = (int)$value;
             $destination->description = $description;
@@ -322,7 +343,8 @@ class TransactionController extends Controller
         
             $storedTransactions = [];
             $transaction = new Transaction;
-            $transaction->date = $date;
+            $transaction->transaction_date = $date;
+            $transaction->payment_date = $date;
             $transaction->type = 'I';
             $transaction->value = (int)$value;
             $transaction->description = $description;
