@@ -9,4 +9,8 @@ Route::group(['middleware' => ['protectedRoute']], function(){
   Route::post('/expenses', [TransactionController::class, 'storeExpense']);
   Route::post('/transfers', [TransactionController::class, 'storeTransfer']);
   Route::post('/initialbalances', [TransactionController::class, 'storeInitialBalance']);
+  Route::patch('/incomes/{id}', [TransactionController::class, 'editIncome']);
+  Route::patch('/expenses/{id}', [TransactionController::class, 'editExpense']);
+  Route::patch('/transfers/{id}', [TransactionController::class, 'editTransfer']);
+  Route::patch('/initialbalances/{accountId}', [TransactionController::class, 'editInitialBalance']);
 });
