@@ -339,9 +339,6 @@ class TransactionController extends Controller
             $description = "Saldo inicial";
             $preview = 0;
             $usual = 0;
-            $installment = 1;
-            $total_installments = 1;
-            $installments_key = 0;
     
             if ($value !== 0 && $value !== "0"){
                 if (!$this->validateValue($value)){
@@ -367,9 +364,6 @@ class TransactionController extends Controller
             $transaction->user_id = (int)$user_id;
             $transaction->preview = $preview;
             $transaction->usual = $usual;
-            $transaction->installments_key = $installments_key;
-            $transaction->installment = $installment;
-            $transaction->total_installments = $total_installments;
             $transaction->save();  
             array_push($storedTransactions, $transaction);
         
