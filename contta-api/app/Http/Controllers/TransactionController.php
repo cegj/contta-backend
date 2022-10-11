@@ -732,30 +732,37 @@ class TransactionController extends Controller
                 return response()->json(['message' => 'Transação não encontrada (id inválido)'], 400);
             }
 
-            if ($cascade == true && (int)$ref_transaction->installments_key !== 0){
-                $transactions = Transaction::where('installments_key', $ref_transaction->installments_key)
-                                ->where('installment', '>=', $ref_transaction->installment)
-                                ->get();
+            $allInstallments = Transaction::where('installments_key', $ref_transaction->installments_key)->get();
+
+            //Delete transaction(s)
+            $deleted = [];
+            $installment = $ref_transaction->installment;
+            $totalInstallments = sizeOf($allInstallments);
+            $n = 1;   
+            foreach($allInstallments as $transaction){
+                if ($cascade == true){
+                    if ($transaction->installment >= $ref_transaction->installment){
+                        $transaction->delete();
+                        array_push($deleted, $transaction);
+                    } else {
+                        $transaction->installment = $n;
+                        $transaction->save();
+                        $n++;
+                    }    
+                } else {
+                    if ($transaction->installment == $ref_transaction->installment){
+                        $transaction->delete();
+                        array_push($deleted, $transaction);
+                    } else {
+                        $transaction->installment = $n;
+                        $transaction->save();
+                        $n++;
+                    }
+                }
             }
 
-            
-            if ($cascade == true){
-                $installment = $ref_transaction->installment;
-                $total_installments = $ref_transaction->total_installments;
-                
-                // echo($total_installments); exit;
-                
-                $i = 0;
-                while($installment <= $total_installments){
-                    $transactions[$i]->delete();
-                    $installment++;
-                    $i++;
-                }
-                return response()->json(["message" => "Transações apagadas com sucesso"], 200);
-            } else {
-                $ref_transaction->delete();
-                return response()->json(["message" => "Transação apagada com sucesso"], 200);
-            }
+            return response()->json(["message" => "Transações apagadas com sucesso", 'deleted' => $deleted], 200);
+
 
         
         } catch (\Throwable $th) {
