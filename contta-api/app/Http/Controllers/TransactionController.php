@@ -151,7 +151,7 @@ class TransactionController extends Controller
         try {
             $transaction_date = $request->transaction_date;
             $payment_date = $request->payment_date;
-            $value = $request->value * -1;
+            $value = $request->value;
             $description = $request->description;
             $category_id = $request->category_id;
             $account_id = $request->account_id;
@@ -202,7 +202,7 @@ class TransactionController extends Controller
                 $transaction->transaction_date = $transactionDateStr;
                 $transaction->payment_date = $paymentDateStr;
                 $transaction->type = 'D';
-                $transaction->value = (int)$value;
+                $transaction->value = (int)$value * -1;
                 $transaction->description = $description;
                 $transaction->category_id = (int)$category_id;
                 $transaction->account_id = (int)$account_id;
@@ -700,6 +700,63 @@ class TransactionController extends Controller
             array_push($storedTransactions, $transaction);
         
             return response()->json(["message" => "Saldo inicial alterado com sucesso", "transactions" => $storedTransactions], 200);
+        
+        } catch (\Throwable $th) {
+            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
+        }
+    }
+
+    public function deleteIncome(Request $request, $id){
+        date_default_timezone_set('America/Sao_Paulo');
+
+        /**
+         * transaction_date: string
+         * payment_date: string
+         * value: integer
+         * description: string
+         * category_id: integer
+         * account_id: integer
+         * preview: string/boolean
+         * usual: string/boolean
+         * total_installments: integer
+         * edit_on_cascade: boolean
+         */
+
+        try {
+
+            $cascade = $request->query('cascade') == 'true' ? true : false;
+
+            $ref_transaction = Transaction::find($id);
+
+            if (!$ref_transaction){
+                return response()->json(['message' => 'Transação não encontrada (id inválido)'], 400);
+            }
+
+            if ($cascade == true && (int)$ref_transaction->installments_key !== 0){
+                $transactions = Transaction::where('installments_key', $ref_transaction->installments_key)
+                                ->where('installment', '>=', $ref_transaction->installment)
+                                ->get();
+            }
+
+            
+            if ($cascade == true){
+                $installment = $ref_transaction->installment;
+                $total_installments = $ref_transaction->total_installments;
+                
+                // echo($total_installments); exit;
+                
+                $i = 0;
+                while($installment <= $total_installments){
+                    $transactions[$i]->delete();
+                    $installment++;
+                    $i++;
+                }
+                return response()->json(["message" => "Transações apagadas com sucesso"], 200);
+            } else {
+                $ref_transaction->delete();
+                return response()->json(["message" => "Transação apagada com sucesso"], 200);
+            }
+
         
         } catch (\Throwable $th) {
             return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);

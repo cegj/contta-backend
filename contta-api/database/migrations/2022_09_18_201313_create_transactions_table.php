@@ -37,10 +37,6 @@ return new class extends Migration
             $table->integer('installment')->nullable();
             $table->integer('total_installments')->nullable();
             $table->timestamps();
-
-            $table->unsignedBigInteger('group_id');
-            $table->foreign('group_id')->references('id')->on('groups')->onDelete('cascade');
-
         });
 
         

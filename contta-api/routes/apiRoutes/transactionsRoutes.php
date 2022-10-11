@@ -13,4 +13,5 @@ Route::group(['middleware' => ['protectedRoute']], function(){
   Route::patch('/expenses/{id}', [TransactionController::class, 'editExpense']);
   Route::patch('/transfers/{id}', [TransactionController::class, 'editTransfer']);
   Route::patch('/initialbalances/{accountId}', [TransactionController::class, 'editInitialBalance']);
+  Route::delete('/incomes/{id}', [TransactionController::class, 'deleteIncome']);
 });
