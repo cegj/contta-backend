@@ -706,7 +706,7 @@ class TransactionController extends Controller
         }
     }
 
-    public function deleteIncome(Request $request, $id){
+    public function deleteIncomeExpense(Request $request, $id){
         date_default_timezone_set('America/Sao_Paulo');
 
         /**
