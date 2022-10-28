@@ -42,15 +42,14 @@ class TransactionController extends Controller
         date_default_timezone_set('America/Sao_Paulo');
 
         /**
-         * transaction_date: string
-         * payment_date: string
-         * value: integer
-         * description: string
-         * category_id: integer
-         * account_id: integer
-         * preview: string/boolean
-         * usual: string/boolean
-         * total_installments: integer
+         * QUERY PARAMS:
+         * from: yyyy-mm-dd
+         * to: yyyy-mm-dd
+         * type: string ('R', 'D', 'T', 'I')
+         * category: integer
+         * account: integer
+         * installments_key: string/number
+         * typeofdate: string ('transaction' (default), 'payment')
          */
 
         try {
@@ -99,9 +98,16 @@ class TransactionController extends Controller
                 return response()->json(["message" => "A data final ({$to}) é inválida"], 400);
             }
 
+            $typeOfDate = $request->query('typeofdate');
+            if ($typeOfDate && $typeOfDate == 'payment'){
+                $typeOfDate = 'payment_date';
+            } else {
+                $typeOfDate = 'transaction_date';
+            }
+
             //Building the query to db
-            $transactions = Transaction::whereDate('transaction_date', ">=", $from)
-            ->whereDate('transaction_date', "<=", $to)
+            $transactions = Transaction::whereDate($typeOfDate, ">=", $from)
+            ->whereDate($typeOfDate, "<=", $to)
             ->get();
 
             //Filter by category
