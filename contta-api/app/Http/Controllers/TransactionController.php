@@ -57,6 +57,7 @@ class TransactionController extends Controller
 
             // Get and set "from" date
             $fromQuery = $request->query('from');
+            if (!$fromQuery){return response()->json(["message" => "É necessário informar uma data inicial ('from')"], 400);}
             $from = explode('-', $fromQuery);
             $sizeOfFrom = sizeOf($from);
 
@@ -77,6 +78,7 @@ class TransactionController extends Controller
 
             // Get and set "to" date
             $toQuery = $request->query('to');
+            if (!$toQuery){return response()->json(["message" => "É necessário informar uma data final ('to')"], 400);}
             $to = explode('-', $toQuery);
             $sizeOfFrom = sizeOf($to);
 
@@ -97,10 +99,27 @@ class TransactionController extends Controller
                 return response()->json(["message" => "A data final ({$to}) é inválida"], 400);
             }
 
+            //Building the query to db
             $transactions = Transaction::whereDate('transaction_date', ">=", $from)
             ->whereDate('transaction_date', "<=", $to)
             ->get();
-            
+
+            //Filter by category
+            $categoryId = $request->query('category');
+            if ($categoryId) {
+                $transactions = $transactions->filter(function ($transaction) use ($categoryId) {
+                    return $transaction->category_id == $categoryId;
+                })->values();            
+            }
+
+            //Filter by account
+            $accountId = $request->query('account');
+            if ($accountId) {
+                $transactions = $transactions->filter(function ($transaction) use ($accountId) {
+                    return $transaction->account_id == $accountId;
+                })->values();            
+            }
+
             return response()->json(["message" => "Transações obtidas de {$from} até {$to}", 'transactions' => $transactions], 200);
 
         } catch (\Throwable $th) {
