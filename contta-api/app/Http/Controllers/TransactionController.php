@@ -607,6 +607,11 @@ class TransactionController extends Controller
         try {
 
             $ref_transaction = Transaction::find($id);
+
+            if (!$ref_transaction){
+                return response()->json(['message' => 'Transação não encontrada (id inválido)'], 400);
+            }
+
             $transactions = Transaction::where('transfer_key', $ref_transaction->transfer_key)->get();
 
             if ($transactions[0]->value < 0 && $transactions[1]->value > 0) {
@@ -707,20 +712,6 @@ class TransactionController extends Controller
     }
 
     public function deleteIncomeExpense(Request $request, $id){
-        date_default_timezone_set('America/Sao_Paulo');
-
-        /**
-         * transaction_date: string
-         * payment_date: string
-         * value: integer
-         * description: string
-         * category_id: integer
-         * account_id: integer
-         * preview: string/boolean
-         * usual: string/boolean
-         * total_installments: integer
-         * edit_on_cascade: boolean
-         */
 
         try {
 
@@ -765,6 +756,66 @@ class TransactionController extends Controller
 
 
         
+        } catch (\Throwable $th) {
+            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
+        }
+    }
+
+    public function deleteTransfer(Request $request, $id){
+
+        try {
+
+            $ref_transaction = Transaction::find($id);
+
+            if (!$ref_transaction){
+                return response()->json(['message' => 'Transação não encontrada (id inválido)'], 400);
+            }
+
+            $transactions = Transaction::where('transfer_key', $ref_transaction->transfer_key)->get();
+
+            if ($transactions[0]->value < 0 && $transactions[1]->value > 0) {
+                $origin = $transactions[0];
+                $destination = $transactions[1];
+            } else if ($transactions[1]->value < 0 && $transactions[0]->value > 0){
+                $origin = $transactions[1];
+                $destination = $transactions[0];
+            }
+
+            //Delete transaction(s)
+            $deleted = [];
+            $origin->delete();
+            array_push($deleted, $origin);
+            $destination->delete();
+            array_push($deleted, $destination);
+
+            return response()->json(["message" => "Transações apagadas com sucesso", 'deleted' => $deleted], 200);
+
+        } catch (\Throwable $th) {
+            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
+        }
+    }
+
+    public function deleteInitialBalance(Request $request, $accountId){
+
+        try {
+
+            $transaction = Transaction::where('type', 'I')->where('account_id', $accountId)->get();
+
+            if (sizeOf($transaction) == 0){
+                return response()->json(["message" => "O saldo inicial não foi localizado"], 400);    
+            } elseif (sizeOf($transaction) == 1) {
+                $transaction = $transaction[0];
+            } else {
+                return response()->json(["message" => "Mais de um saldo inicial foi localizado para a conta"], 400);    
+            }
+
+            //Delete transaction
+            $deleted = [];
+            $transaction->delete();
+            array_push($deleted, $transaction);
+
+            return response()->json(["message" => "Transações apagadas com sucesso", 'deleted' => $deleted], 200);
+                                
         } catch (\Throwable $th) {
             return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
         }
