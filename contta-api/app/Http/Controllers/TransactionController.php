@@ -142,6 +142,40 @@ class TransactionController extends Controller
             return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
         }
     }
+
+    public function getTransactionById(Request $request, $id){
+
+        try {
+
+            $transaction = Transaction::find($id);
+
+            if (!$transaction){
+                return response()->json(['message' => 'Transação não encontrada (id inválido)'], 400);
+            }
+
+            if ($transaction->type == 'R' || $transaction->type == 'D'){
+                $allInstallments = Transaction::where('installments_key', $transaction->installments_key)->get();
+                return response()->json(["message" => "Transação resgatada com sucesso", 'transaction' => $transaction, 'allRelated' => $allInstallments], 200);
+            }
+
+            if ($transaction->type == 'T'){
+                $transferTransactions = Transaction::where('transfer_key', $transaction->transfer_key)->get();
+
+                if ($transferTransactions[0]->value < 0 && $transferTransactions[1]->value > 0) {
+                    $origin = $transferTransactions[0];
+                    $destination = $transferTransactions[1];
+                } else if ($transferTransactions[1]->value < 0 && $transferTransactions[0]->value > 0){
+                    $origin = $transferTransactions[1];
+                    $destination = $transferTransactions[0];
+                }
+
+                return response()->json(["message" => "Transação resgatada com sucesso", 'transaction' => $transaction, 'allRelated' => [$origin, $destination]], 200);
+            }
+        
+        } catch (\Throwable $th) {
+            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
+        }
+    }
     
     public function storeIncome(Request $request){
         date_default_timezone_set('America/Sao_Paulo');
