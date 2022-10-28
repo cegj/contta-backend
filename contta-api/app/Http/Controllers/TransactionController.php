@@ -120,6 +120,22 @@ class TransactionController extends Controller
                 })->values();            
             }
 
+            //Filter by type
+            $type = $request->query('type');
+            if ($type) {
+                $transactions = $transactions->filter(function ($transaction) use ($type) {
+                    return $transaction->type == $type;
+                })->values();            
+            }
+
+            //Filter by installments_key
+            $installments_key = $request->query('installments_key');
+            if ($installments_key) {
+                $transactions = $transactions->filter(function ($transaction) use ($installments_key) {
+                    return $transaction->installments_key == $installments_key;
+                })->values();            
+            }
+
             return response()->json(["message" => "Transações obtidas de {$from} até {$to}", 'transactions' => $transactions], 200);
 
         } catch (\Throwable $th) {
