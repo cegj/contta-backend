@@ -37,6 +37,76 @@ class TransactionController extends Controller
             return false;
         }
     }
+
+    public function getTransactions(Request $request){
+        date_default_timezone_set('America/Sao_Paulo');
+
+        /**
+         * transaction_date: string
+         * payment_date: string
+         * value: integer
+         * description: string
+         * category_id: integer
+         * account_id: integer
+         * preview: string/boolean
+         * usual: string/boolean
+         * total_installments: integer
+         */
+
+        try {
+
+            // Get and set "from" date
+            $fromQuery = $request->query('from');
+            $from = explode('-', $fromQuery);
+            $sizeOfFrom = sizeOf($from);
+
+            if($sizeOfFrom == 1){
+                $from = $from[0] . '-' . '01' . '-' . '01';
+            } else if ($sizeOfFrom == 2) {
+                $from = $from[0] . '-' . $from[1] . '-' . '01';
+            } else if ($sizeOfFrom == 3) {
+                $from = $from[0] . '-' . $from[1] . '-' . $from[2];
+            }
+
+            //Check if "from" date is valid
+            $dateToCheck = explode('-', $from);
+            $dateIsValid = checkdate($dateToCheck[1], $dateToCheck[2], $dateToCheck[0]);
+            if (!$dateIsValid){
+                return response()->json(["message" => "A data inicial ({$from}) é inválida"], 400);
+            }
+
+            // Get and set "to" date
+            $toQuery = $request->query('to');
+            $to = explode('-', $toQuery);
+            $sizeOfFrom = sizeOf($to);
+
+            if($sizeOfFrom == 1){
+                $to = $to[0] . '-' . '12' . '-' . '31';
+            } else if ($sizeOfFrom == 2) {
+                $date = new DateTime($toQuery);
+                $date->modify('last day of this month');
+                $to = $to[0] . '-' . $to[1] . '-' . $date->format('d');
+            } else if ($sizeOfFrom == 3) {
+                $to = $to[0] . '-' . $to[1] . '-' . $to[2];
+            }
+
+            //Check if "to" date is valid
+            $dateToCheck = explode('-', $to);
+            $dateIsValid = checkdate($dateToCheck[1], $dateToCheck[2], $dateToCheck[0]);
+            if (!$dateIsValid){
+                return response()->json(["message" => "A data final ({$to}) é inválida"], 400);
+            }
+
+            $transactions = Transaction::whereDate('transaction_date', ">=", $from)
+            ->whereDate('transaction_date', "<=", $to)
+            ->get();
+            
+            return response()->json(["message" => "Transações obtidas de {$from} até {$to}", 'transactions' => $transactions], 200);
+
+        } catch (\Throwable $th) {
+            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
+        }
+    }
     
     public function storeIncome(Request $request){
         date_default_timezone_set('America/Sao_Paulo');
