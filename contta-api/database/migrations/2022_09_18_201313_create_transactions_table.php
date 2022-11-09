@@ -35,7 +35,6 @@ return new class extends Migration
             $table->string('transfer_key')->nullable();
             $table->string('installments_key')->nullable();
             $table->integer('installment')->nullable();
-            $table->integer('total_installments')->nullable();
             $table->timestamps();
         });
 

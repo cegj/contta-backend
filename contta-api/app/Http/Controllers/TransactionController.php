@@ -237,7 +237,7 @@ class TransactionController extends Controller
             $user_id = JWTAuth::parseToken()->toUser()->id;
     
             // Generate installment_key if there are more than one stallment
-            $installments_key = ($total_installments > 1) ? random_int(1, 9) . time() . random_int(1, 9) : 0;
+            $installments_key = ($total_installments > 1) ? random_int(1, 9) . time() . random_int(1, 9) : null;
     
             //Values who changes according to the stallment
             $installment = 1;
@@ -261,7 +261,6 @@ class TransactionController extends Controller
                 $transaction->usual = $usual;
                 $transaction->installments_key = $installments_key;
                 $transaction->installment = $installment;
-                $transaction->total_installments = $total_installments;
                 $transaction->save();  
                 array_push($storedTransactions, $transaction);
     
@@ -332,7 +331,7 @@ class TransactionController extends Controller
             $user_id = JWTAuth::parseToken()->toUser()->id;
     
             // Generate installment_key if there are more than one stallment
-            $installments_key = ($total_installments > 1) ? random_int(1, 9) . time() . random_int(1, 9) : 0;
+            $installments_key = ($total_installments > 1) ? random_int(1, 9) . time() . random_int(1, 9) : null;
     
             //Values who changes according to the stallment
             $installment = 1;
@@ -356,7 +355,6 @@ class TransactionController extends Controller
                 $transaction->usual = $usual;
                 $transaction->installments_key = $installments_key;
                 $transaction->installment = $installment;
-                $transaction->total_installments = $total_installments;
                 $transaction->save();  
                 array_push($storedTransactions, $transaction);
     
@@ -531,13 +529,11 @@ class TransactionController extends Controller
          * account_id: integer
          * preview: string/boolean
          * usual: string/boolean
-         * total_installments: integer
-         * edit_on_cascade: boolean
          */
 
         try {
 
-            $edit_on_cascade = $request->edit_on_cascade;
+            $cascade = $request->query('cascade') == 'true' ? true : false;
 
             $ref_transaction = Transaction::find($id);
 
@@ -545,10 +541,8 @@ class TransactionController extends Controller
                 return response()->json(['message' => 'Transação não encontrada (id inválido)'], 400);
             }
 
-            if ($edit_on_cascade == true && (int)$ref_transaction->installments_key !== 0){
-                $transactions = Transaction::where('installments_key', $ref_transaction->installments_key)
-                                ->where('installment', '>=', $ref_transaction->installment)
-                                ->get();
+            if ($ref_transaction->type !== "R"){
+                return response()->json(['message' => 'Transação informada não é do tipo receita (R)'], 400);
             }
 
             $transaction_date = $request->transaction_date ?? $ref_transaction->transaction_date;
@@ -567,8 +561,6 @@ class TransactionController extends Controller
             } else {
                 $usual = $ref_transaction->usual;
             }
-            $installment = $ref_transaction->installment;
-            $total_installments = $ref_transaction->total_installments;
     
             if (!$this->validateDate($transaction_date)){
                 return response()->json(["message" => "A data informada é inválida"], 400);
@@ -588,9 +580,17 @@ class TransactionController extends Controller
             $payment_date = new DateTime($this->convertDate($request->payment_date));
             $paymentDateStr = $payment_date->format('Y-m-d');
             
-            if ($edit_on_cascade == true){
-                $i = 0;
-                while($installment <= $total_installments){
+            if ($cascade == true){
+                if ($ref_transaction->installments_key){
+                    $transactions = Transaction::where('installments_key', $ref_transaction->installments_key)
+                                    ->get();
+                    $total_installments = count($transactions);
+                } else {
+                    return response()->json(["message" => "Impossível editar em cascata: transação não tem outras parcelas associadas."], 400);        
+                }
+
+                $i = $ref_transaction->installment - 1;
+                while($i < $total_installments){
                     $transactions[$i]->transaction_date = $transactionDateStr;
                     $transactions[$i]->payment_date = $paymentDateStr;
                     $transactions[$i]->value = (int)$value;
@@ -602,10 +602,9 @@ class TransactionController extends Controller
                     $transactions[$i]->save();  
                     array_push($editedTransactions, $transactions[$i]);
         
-                    //Increment values for next stallment
+                    //Increment values for next installment
                     $transactionDateStr = $transaction_date->modify("+1 month")->format('Y-m-d');
                     $paymentDateStr = $payment_date->modify("+1 month")->format('Y-m-d');
-                    $installment++;
                     $i++;
                 }
             } else {
@@ -640,13 +639,11 @@ class TransactionController extends Controller
          * account_id: integer
          * preview: string/boolean
          * usual: string/boolean
-         * total_installments: integer
-         * edit_on_cascade: boolean
          */
 
         try {
 
-            $edit_on_cascade = $request->edit_on_cascade;
+            $cascade = $request->query('cascade') == 'true' ? true : false;
 
             $ref_transaction = Transaction::find($id);
 
@@ -654,10 +651,8 @@ class TransactionController extends Controller
                 return response()->json(['message' => 'Transação não encontrada (id inválido)'], 400);
             }
 
-            if ($edit_on_cascade == true && (int)$ref_transaction->installments_key !== 0){
-                $transactions = Transaction::where('installments_key', $ref_transaction->installments_key)
-                                ->where('installment', '>=', $ref_transaction->installment)
-                                ->get();
+            if ($ref_transaction->type !== "D"){
+                return response()->json(['message' => 'Transação informada não é do tipo despesa (D)'], 400);
             }
 
             $transaction_date = $request->transaction_date ?? $ref_transaction->transaction_date;
@@ -676,9 +671,7 @@ class TransactionController extends Controller
             } else {
                 $usual = $ref_transaction->usual;
             }
-            $installment = $ref_transaction->installment;
-            $total_installments = $ref_transaction->total_installments;
-    
+
             if (!$this->validateDate($transaction_date)){
                 return response()->json(["message" => "A data informada é inválida"], 400);
             }
@@ -697,9 +690,17 @@ class TransactionController extends Controller
             $payment_date = new DateTime($this->convertDate($request->payment_date));
             $paymentDateStr = $payment_date->format('Y-m-d');
             
-            if ($edit_on_cascade == true){
-                $i = 0;
-                while($installment <= $total_installments){
+            if ($cascade == true){
+                if ($ref_transaction->installments_key){
+                    $transactions = Transaction::where('installments_key', $ref_transaction->installments_key)
+                                    ->get();
+                    $total_installments = count($transactions);
+                } else {
+                    return response()->json(["message" => "Impossível editar em cascata: transação não tem outras parcelas associadas."], 400);        
+                }
+
+                $i = $ref_transaction->installment - 1;
+                while($i < $total_installments){
                     $transactions[$i]->transaction_date = $transactionDateStr;
                     $transactions[$i]->payment_date = $paymentDateStr;
                     $transactions[$i]->value = -(int)$value;
@@ -714,7 +715,6 @@ class TransactionController extends Controller
                     //Increment values for next stallment
                     $transactionDateStr = $transaction_date->modify("+1 month")->format('Y-m-d');
                     $paymentDateStr = $payment_date->modify("+1 month")->format('Y-m-d');
-                    $installment++;
                     $i++;
                 }
             } else {
@@ -755,6 +755,10 @@ class TransactionController extends Controller
 
             if (!$ref_transaction){
                 return response()->json(['message' => 'Transação não encontrada (id inválido)'], 400);
+            }
+
+            if ($ref_transaction->type !== "T"){
+                return response()->json(['message' => 'Transação informada não é do tipo transferência (T)'], 400);
             }
 
             $transactions = Transaction::where('transfer_key', $ref_transaction->transfer_key)->get();
@@ -899,8 +903,6 @@ class TransactionController extends Controller
 
             return response()->json(["message" => "Transações apagadas com sucesso", 'deleted' => $deleted], 200);
 
-
-        
         } catch (\Throwable $th) {
             return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
         }

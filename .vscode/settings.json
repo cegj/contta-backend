@@ -1,19 +1,19 @@
-// {
-//   "files.exclude": {
-//     "contta-api/bootstrap": true,
-//     "contta-api/config": true,
-//     "contta-api/lang": true,
-//     "contta-api/storage": true,
-//     "contta-api/tests": true,
-//     "contta-api/database/factories": true,
-//     "contta-api/vendor": true,
-//     "contta-api/public": true,
-//     "contta-api/app/Console": true,
-//     "contta-api/app/Exceptions": true,
-//     "contta-api/app/Providers": true,
-//     "contta-api/routes/channels.php": true,
-//     "contta-api/routes/console.php": true,
-//     "contta-api/routes/web.php": true,
-//     "contta-api/*.*": true,
-//   }
-// }
+{
+  "files.exclude": {
+    "contta-api/bootstrap": true,
+    "contta-api/config": true,
+    "contta-api/lang": true,
+    "contta-api/storage": true,
+    "contta-api/tests": true,
+    "contta-api/database/factories": true,
+    "contta-api/vendor": true,
+    "contta-api/public": true,
+    "contta-api/app/Console": true,
+    "contta-api/app/Exceptions": true,
+    "contta-api/app/Providers": true,
+    "contta-api/routes/channels.php": true,
+    "contta-api/routes/console.php": true,
+    "contta-api/routes/web.php": true,
+    "contta-api/*.*": true,
+  }
+}
