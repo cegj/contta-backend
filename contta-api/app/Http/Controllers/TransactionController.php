@@ -11,7 +11,6 @@ class TransactionController extends Controller
 {
     private function validateDate($dateStr){
         $date = explode( '-', $dateStr );
-        echo $date; exit;
         return checkdate($date[1], $date[2], $date[0]);
     }
 
