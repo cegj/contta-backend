@@ -25,11 +25,11 @@ class protectedRoute extends BaseMiddleware
             $user = JWTAuth::parseToken()->authenticate();
         } catch (\Exception $e) {
             if ($e instanceof \Tymon\JWTAuth\Exceptions\TokenInvalidException){
-                return response()->json(['message' => 'Token inválido']);
+                return response()->json(['message' => 'Token de acesso inválido'], 401);
             }else if ($e instanceof \Tymon\JWTAuth\Exceptions\TokenExpiredException){
-                return response()->json(['message' => 'Token expirado']);
+                return response()->json(['message' => 'Token de acesso expirado'], 401);
             }else{
-                return response()->json(['message' => 'Token de autorização não encontrado']);
+                return response()->json(['message' => 'Token de acesso não encontrado'], 401);
             }
         }
         return $next($request);
