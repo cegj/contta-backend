@@ -11,6 +11,7 @@ class TransactionController extends Controller
 {
     private function validateDate($dateStr){
         $date = explode( '-', $dateStr );
+        echo $date; exit;
         return checkdate($date[1], $date[2], $date[0]);
     }
 
@@ -473,7 +474,8 @@ class TransactionController extends Controller
             $alreadExists = Transaction::where('type', 'I')->where('account_id', $account_id)->get();
 
             if (sizeOf($alreadExists) !== 0){
-                $currentValue = number_format($alreadExists[0]->value/100, 2, ",", ".");
+                $c
+                urrentValue = number_format($alreadExists[0]->value/100, 2, ",", ".");
                 return response()->json(["message" => "A conta já possui um saldo inicial no valor de R$ {$currentValue}"], 422);    
             }
 
