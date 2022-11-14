@@ -241,9 +241,9 @@ class TransactionController extends Controller
     
             //Values who changes according to the stallment
             $installment = 1;
-            $transaction_date = new DateTime($this->$request->transaction_date);
+            $transaction_date = new DateTime($request->transaction_date);
             $transactionDateStr = $transaction_date->format('Y-m-d');
-            $payment_date = new DateTime($this->$request->payment_date);
+            $payment_date = new DateTime($request->payment_date);
             $paymentDateStr = $payment_date->format('Y-m-d');
             $storedTransactions = [];
             
@@ -335,9 +335,9 @@ class TransactionController extends Controller
     
             //Values who changes according to the stallment
             $installment = 1;
-            $transaction_date = new DateTime($this->$request->transaction_date);
+            $transaction_date = new DateTime($request->transaction_date);
             $transactionDateStr = $transaction_date->format('Y-m-d');
-            $payment_date = new DateTime($this->$request->payment_date);
+            $payment_date = new DateTime($request->payment_date);
             $paymentDateStr = $payment_date->format('Y-m-d');
             $storedTransactions = [];
             
@@ -417,7 +417,7 @@ class TransactionController extends Controller
             // Generate installment_key if there are more than one stallment
             $transfer_key = random_int(1, 9) . time() . random_int(1, 9);
     
-            $transaction_date = new DateTime($this->$request->transaction_date);
+            $transaction_date = new DateTime($request->transaction_date);
             $dateStr = $transaction_date->format('Y-m-d');
             $storedTransactions = [];
             
@@ -575,9 +575,9 @@ class TransactionController extends Controller
             }
                 
             $editedTransactions = [];
-            $transaction_date = new DateTime($this->$request->transaction_date);
+            $transaction_date = new DateTime($request->transaction_date);
             $transactionDateStr = $transaction_date->format('Y-m-d');
-            $payment_date = new DateTime($this->$request->payment_date);
+            $payment_date = new DateTime($request->payment_date);
             $paymentDateStr = $payment_date->format('Y-m-d');
             
             if ($cascade == true){
@@ -685,9 +685,9 @@ class TransactionController extends Controller
             }
                 
             $editedTransactions = [];
-            $transaction_date = new DateTime($this->$request->transaction_date);
+            $transaction_date = new DateTime($request->transaction_date);
             $transactionDateStr = $transaction_date->format('Y-m-d');
-            $payment_date = new DateTime($this->$request->payment_date);
+            $payment_date = new DateTime($request->payment_date);
             $paymentDateStr = $payment_date->format('Y-m-d');
             
             if ($cascade == true){
@@ -791,7 +791,7 @@ class TransactionController extends Controller
                 return response()->json(["message" => "O valor da transação deve ser informado como número inteiro maior que zero"], 400);
             }
                 
-            $transaction_date = new DateTime($this->$request->transaction_date);
+            $transaction_date = new DateTime($request->transaction_date);
             $dateStr = $transaction_date->format('Y-m-d');
             $editedTransactions = [];
 
