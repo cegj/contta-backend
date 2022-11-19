@@ -142,6 +142,11 @@ class TransactionController extends Controller
                 })->values();            
             }
 
+            foreach ($transactions as $transaction){
+                $transaction->category;
+                $transaction->account;
+            }
+
             return response()->json(["message" => "Transações obtidas de {$from} até {$to}", 'transactions' => $transactions], 200);
 
         } catch (\Throwable $th) {
@@ -161,6 +166,14 @@ class TransactionController extends Controller
 
             if ($transaction->type == 'R' || $transaction->type == 'D'){
                 $allInstallments = Transaction::where('installments_key', $transaction->installments_key)->get();
+
+                $transaction->category;
+                $transaction->group;
+                foreach ($allInstallments as $installment){
+                    $installment->category;
+                    $installment->account;
+                }
+
                 return response()->json(["message" => "Transação resgatada com sucesso", 'transaction' => $transaction, 'allRelated' => $allInstallments], 200);
             }
 
@@ -174,6 +187,13 @@ class TransactionController extends Controller
                     $origin = $transferTransactions[1];
                     $destination = $transferTransactions[0];
                 }
+
+                $transaction->category;
+                $transaction->group;
+                $origin->category;
+                $origin->category;
+                $destination->category;
+                $destination->category;
 
                 return response()->json(["message" => "Transação resgatada com sucesso", 'transaction' => $transaction, 'allRelated' => [$origin, $destination]], 200);
             }
