@@ -682,12 +682,12 @@ class TransactionController extends Controller
             $category_id = $request->category_id ?? $ref_transaction->category_id;
             $account_id = $request->account_id ?? $ref_transaction->account_id;
             if ($request->preview) {
-                $preview = ($request->preview === true || $request->preview === "true") ? 1 : 0; //False (0) as default
+                $preview = ($request->preview === true || $request->preview === "true") ?: false; //False (0) as default
             } else {
                 $preview = $ref_transaction->preview;
             }
             if ($request->usual) {
-                $usual = ($request->usual === true || $request->usual === "true") ? 1 : 0; //False (0) as default
+                $usual = ($request->usual === true || $request->usual === "true") ?: false; //False (0) as default
             } else {
                 $usual = $ref_transaction->usual;
             }
