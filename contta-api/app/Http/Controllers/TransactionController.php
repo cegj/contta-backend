@@ -700,8 +700,11 @@ class TransactionController extends Controller
                 return response()->json(["message" => "A data de pagamento informada é inválida"], 400);
             }
 
+            if ($request->value){
             if (!$this->validateValue($value)){
                 return response()->json(["message" => "O valor da transação deve ser informado como número inteiro maior que zero"], 400);
+            }
+
             }
                 
             $editedTransactions = [];
