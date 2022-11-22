@@ -677,7 +677,6 @@ class TransactionController extends Controller
 
             $transaction_date = $request->transaction_date ?? $ref_transaction->transaction_date;
             $payment_date = $request->payment_date ?? $ref_transaction->payment_date;
-            $value = $request->value ?? $ref_transaction->value;
             $description = $request->description ?? $ref_transaction->description;
             $category_id = $request->category_id ?? $ref_transaction->category_id;
             $account_id = $request->account_id ?? $ref_transaction->account_id;
@@ -700,11 +699,14 @@ class TransactionController extends Controller
                 return response()->json(["message" => "A data de pagamento informada é inválida"], 400);
             }
 
-            if ($request->value){
+            if ($request->exists('value')){
+            $value = $request->value;
             if (!$this->validateValue($value)){
                 return response()->json(["message" => "O valor da transação deve ser informado como número inteiro maior que zero"], 400);
             }
-
+            $value = -$value;
+            } else {
+                $value = $ref_transaction->value
             }
                 
             $editedTransactions = [];
@@ -726,7 +728,7 @@ class TransactionController extends Controller
                 while($i < $total_installments){
                     $transactions[$i]->transaction_date = $transactionDateStr;
                     $transactions[$i]->payment_date = $paymentDateStr;
-                    $transactions[$i]->value = -(int)$value;
+                    $transactions[$i]->value = (int)$value;
                     $transactions[$i]->description = $description;
                     $transactions[$i]->category_id = (int)$category_id;
                     $transactions[$i]->account_id = (int)$account_id;
