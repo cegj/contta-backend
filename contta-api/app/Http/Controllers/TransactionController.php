@@ -706,7 +706,7 @@ class TransactionController extends Controller
             }
             $value = -$value;
             } else {
-                $value = $ref_transaction->value
+                $value = $ref_transaction->value;
             }
                 
             $editedTransactions = [];
