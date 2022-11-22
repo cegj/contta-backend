@@ -898,7 +898,11 @@ class TransactionController extends Controller
                 return response()->json(['message' => 'Transação não encontrada (id inválido)'], 400);
             }
 
-            $allInstallments = Transaction::where('installments_key', $ref_transaction->installments_key)->get();
+            if ($ref_transaction->installments_key){
+                $allInstallments = Transaction::where('installments_key', $ref_transaction->installments_key)->get();
+            } else {
+                $allInstallments = [$ref_transaction];
+            }
 
             //Delete transaction(s)
             $deleted = [];
