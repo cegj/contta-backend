@@ -565,12 +565,12 @@ class TransactionController extends Controller
                 return response()->json(['message' => 'Transação informada não é do tipo receita (R)'], 400);
             }
 
-            $transaction_date = $request->transaction_date ?? $ref_transaction->transaction_date;
-            $payment_date = $request->payment_date ?? $ref_transaction->payment_date;
-            $value = $request->value ?? $ref_transaction->value;
-            $description = $request->description ?? $ref_transaction->description;
-            $category_id = $request->category_id ?? $ref_transaction->category_id;
-            $account_id = $request->account_id ?? $ref_transaction->account_id;
+            $transaction_date = $request->exists('transaction_date') ? $request->transaction_date : $ref_transaction->transaction_date;
+            $payment_date = $request->exists('payment_date') ? $request->payment_date : $ref_transaction->payment_date;
+            $value = $request->exists('value') ? $request->value : $ref_transaction->value;
+            $description = $request->exists('description') ? $request->description : $ref_transaction->description;
+            $category_id = $request->exists('category_id') ? $request->category_id : $ref_transaction->category_id;
+            $account_id = $request->exists('account_id') ? $request->account_id : $ref_transaction->account_id;
             if ($request->exists('preview')) {
                 $preview = ($request->preview === true || $request->preview === "true") ? 1 : 0; //False (0) as default
             } else {
@@ -595,9 +595,9 @@ class TransactionController extends Controller
             }
                 
             $editedTransactions = [];
-            $transaction_date = new DateTime($request->transaction_date);
+            $transaction_date = new DateTime($transaction_date);
             $transactionDateStr = $transaction_date->format('Y-m-d');
-            $payment_date = new DateTime($request->payment_date);
+            $payment_date = new DateTime($payment_date);
             $paymentDateStr = $payment_date->format('Y-m-d');
             
             if ($cascade == true){
@@ -675,11 +675,11 @@ class TransactionController extends Controller
                 return response()->json(['message' => 'Transação informada não é do tipo despesa (D)'], 400);
             }
 
-            $transaction_date = $request->transaction_date ?? $ref_transaction->transaction_date;
-            $payment_date = $request->payment_date ?? $ref_transaction->payment_date;
-            $description = $request->description ?? $ref_transaction->description;
-            $category_id = $request->category_id ?? $ref_transaction->category_id;
-            $account_id = $request->account_id ?? $ref_transaction->account_id;
+            $transaction_date = $request->exists('transaction_date') ? $request->transaction_date : $ref_transaction->transaction_date;
+            $payment_date = $request->exists('payment_date') ? $request->payment_date : $ref_transaction->payment_date;
+            $description = $request->exists('description') ? $request->description : $ref_transaction->description;
+            $category_id = $request->exists('category_id') ? $request->category_id : $ref_transaction->category_id;
+            $account_id = $request->exists('account_id') ? $request->account_id : $ref_transaction->account_id;
             if ($request->exists('preview')) {
                 $preview = ($request->preview === true || $request->preview === "true") ? 1 : 0; //False (0) as default
             } else {
@@ -710,9 +710,9 @@ class TransactionController extends Controller
             }
                 
             $editedTransactions = [];
-            $transaction_date = new DateTime($request->transaction_date);
+            $transaction_date = new DateTime($transaction_date);
             $transactionDateStr = $transaction_date->format('Y-m-d');
-            $payment_date = new DateTime($request->payment_date);
+            $payment_date = new DateTime($payment_date);
             $paymentDateStr = $payment_date->format('Y-m-d');
             
             if ($cascade == true){
@@ -796,12 +796,12 @@ class TransactionController extends Controller
                 $destination = $transactions[0];
             }
 
-            $transaction_date = $request->transaction_date ?? $ref_transaction->transaction_date;
-            $payment_date = $request->transaction_date ?? $ref_transaction->transaction_date;
-            $value = $request->value ?? $ref_transaction->value;
-            $description = $request->description ?? $ref_transaction->description;
-            $account_id = $request->account_id ?? $ref_transaction->account_id;
-            $destination_account_id = $request->destination_account_id ?? $ref_transaction->destination_account_id;
+            $transaction_date = $request->exists('transaction_date') ? $request->transaction_date : $ref_transaction->transaction_date;
+            $payment_date = $request->exists('transaction_date') ? $request->transaction_date : $ref_transaction->transaction_date;
+            $value = $request->exists('value') ? $request->value : $ref_transaction->value;
+            $description = $request->exists('description') ? $request->description : $ref_transaction->description;
+            $account_id = $request->exists('account_id') ? $request->account_id : $ref_transaction->account_id;
+            $destination_account_id = $request->exists('destination_account_id') ? $request->destination_account_id : $ref_transaction->destination_account_id;
             if ($request->exists('usual')) {
                 $usual = ($request->usual === true || $request->usual === "true") ? 1 : 0; //False (0) as default
             } else {
@@ -816,7 +816,7 @@ class TransactionController extends Controller
                 return response()->json(["message" => "O valor da transação deve ser informado como número inteiro maior que zero"], 400);
             }
                 
-            $transaction_date = new DateTime($request->transaction_date);
+            $transaction_date = new DateTime($transaction_date);
             $dateStr = $transaction_date->format('Y-m-d');
             $editedTransactions = [];
 
