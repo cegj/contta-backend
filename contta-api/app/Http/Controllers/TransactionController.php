@@ -108,6 +108,7 @@ class TransactionController extends Controller
             //Building the query to db
             $transactions = Transaction::whereDate($typeOfDate, ">=", $from)
             ->whereDate($typeOfDate, "<=", $to)
+            ->orderBy($typeOfDate, 'asc')
             ->get();
 
             //Filter by category
