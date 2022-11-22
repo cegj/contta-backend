@@ -745,7 +745,7 @@ class TransactionController extends Controller
             } else {
                 $ref_transaction->transaction_date = $transactionDateStr;
                 $ref_transaction->payment_date = $paymentDateStr;
-                $ref_transaction->value = -(int)$value;
+                $ref_transaction->value = (int)$value;
                 $ref_transaction->description = $description;
                 $ref_transaction->category_id = (int)$category_id;
                 $ref_transaction->account_id = (int)$account_id;
