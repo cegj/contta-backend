@@ -898,6 +898,11 @@ class TransactionController extends Controller
                 return response()->json(['message' => 'Transação não encontrada (id inválido)'], 400);
             }
 
+            if ($ref_transaction->type === "R" || $ref_transaction->type === "D"){
+            } else {
+                return response()->json(['message' => 'Transação informada não é do tipo receita (R) ou despesa (D).'], 400);
+            }
+
             if ($ref_transaction->installments_key){
                 $allInstallments = Transaction::where('installments_key', $ref_transaction->installments_key)->get();
             } else {
@@ -946,6 +951,11 @@ class TransactionController extends Controller
 
             if (!$ref_transaction){
                 return response()->json(['message' => 'Transação não encontrada (id inválido)'], 400);
+            }
+
+            if ($ref_transaction->type === "T"){
+            } else {
+                return response()->json(['message' => 'Transação informada não é do tipo transferência (T).'], 400);
             }
 
             $transactions = Transaction::where('transfer_key', $ref_transaction->transfer_key)->get();
