@@ -93,34 +93,87 @@ class BalanceController extends Controller
             //     ->sum('value');
             //     $message = "Saldo obtido de {$startingDate} até {$date}";
 
-                //Balance of date
-                $incomesOfDate = Transaction::selectRaw("value, " . $typeOfDate)
-                ->where($typeOfDate, "=", $date)
-                ->where('type', "=", 'R')
-                ->orderBy($typeOfDate, 'asc')
-                ->get()
-                ->sum('value');
+            //Date balance
+            $incomesOfDate = Transaction::selectRaw("value, " . $typeOfDate)
+            ->where($typeOfDate, "=", $date)
+            ->where('type', "=", 'R')
+            ->orderBy($typeOfDate, 'asc')
+            ->get()
+            ->sum('value');
 
-                $expensesOfDate = Transaction::selectRaw("value, " . $typeOfDate)
-                ->where($typeOfDate, "=", $date)
-                ->where('type', "=", 'R')
-                ->orderBy($typeOfDate, 'asc')
-                ->get()
-                ->sum('value');
+            $expensesOfDate = Transaction::selectRaw("value, " . $typeOfDate)
+            ->where($typeOfDate, "=", $date)
+            ->where('type', "=", 'R')
+            ->orderBy($typeOfDate, 'asc')
+            ->get()
+            ->sum('value');
 
-                $balaceOfDate = Transaction::selectRaw("value, " . $typeOfDate)
-                ->where($typeOfDate, "=", $date)
-                ->orderBy($typeOfDate, 'asc')
-                ->get()
-                ->sum('value');
+            $balaceOfDate = Transaction::selectRaw("value, " . $typeOfDate)
+            ->where($typeOfDate, "=", $date)
+            ->orderBy($typeOfDate, 'asc')
+            ->get()
+            ->sum('value');
 
-                //Balance month until date
+            //Month balance until date
+            $incomesOfMonth = Transaction::selectRaw("value, " . $typeOfDate)
+            ->whereBetween($typeOfDate, [$firstDateOfMonth, $date])
+            ->where('type', "=", 'R')
+            ->orderBy($typeOfDate, 'asc')
+            ->get()
+            ->sum('value');
 
-                //Balance general until date
+            $expensesOfMonth = Transaction::selectRaw("value, " . $typeOfDate)
+            ->whereBetween($typeOfDate, [$firstDateOfMonth, $date])
+            ->where('type', "=", 'R')
+            ->orderBy($typeOfDate, 'asc')
+            ->get()
+            ->sum('value');
 
-            }
+            $balaceOfMonth = Transaction::selectRaw("value, " . $typeOfDate)
+            ->whereBetween($typeOfDate, [$firstDateOfMonth, $date])
+            ->orderBy($typeOfDate, 'asc')
+            ->get()
+            ->sum('value');
 
-            return response()->json(["message" => $message, 'incomes' => $incomes, 'expenses' => $expenses, 'balance' => $balance, 'c' => $cumulative], 200);
+            //General balance until date
+            $incomesOfAll = Transaction::selectRaw("value, " . $typeOfDate)
+            ->where($typeOfDate, "<=", $date)
+            ->where('type', "=", 'R')
+            ->orderBy($typeOfDate, 'asc')
+            ->get()
+            ->sum('value');
+
+            $expensesOfAll = Transaction::selectRaw("value, " . $typeOfDate)
+            ->where($typeOfDate, "<=", $date)
+            ->where('type', "=", 'R')
+            ->orderBy($typeOfDate, 'asc')
+            ->get()
+            ->sum('value');
+
+            $balaceOfAll = Transaction::selectRaw("value, " . $typeOfDate)
+            ->where($typeOfDate, "<=", $date)
+            ->orderBy($typeOfDate, 'asc')
+            ->get()
+            ->sum('value');
+
+            return response()->json([
+                "message" => "Saldo obtido de {$date}",
+                $ofDate => [
+                    'incomes' => $incomesOfDate,
+                    'expenses' => $expensesOfDate,
+                    'balance' => $balanceOfDate  
+                ],
+                $ofMonth => [
+                    'incomes' => $incomesOfMonth,
+                    'expenses' => $expensesOfMonth,
+                    'balance' => $balanceOfMonth  
+                ],
+                $ofDate => [
+                    'incomes' => $incomesOfAll,
+                    'expenses' => $expensesOfAll,
+                    'balance' => $balanceOfAll  
+                ],               
+                ], 200);
             
         } catch (\Throwable $th) {
             return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
