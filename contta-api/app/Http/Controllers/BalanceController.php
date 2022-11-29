@@ -36,7 +36,7 @@ class BalanceController extends Controller
             //Check if date is valid
             $dateIsValid = checkdate($date[1], $date[2], $date[0]);
             if (!$dateIsValid){
-                return response()->json(["message" => "A data escolhida ({$date}) é inválida"], 400);
+                return response()->json(["message" => "A data escolhida ({$dateQuery}) é inválida"], 400);
             }
 
             $typeOfDate = $request->query('typeofdate');
@@ -51,7 +51,7 @@ class BalanceController extends Controller
             $dateToCheck = explode('-', $firstDateOfMonth);
             $dateIsValid = checkdate($dateToCheck[1], $dateToCheck[2], $dateToCheck[0]);
             if (!$dateIsValid){
-                return response()->json(["message" => "A data de início {$startingDate} calculada a partir da data ({$date}) é inválida"], 500);
+                return response()->json(["message" => "A data de início {$firstDateOfMonth} calculada a partir da data ({$dateQuery}) é inválida"], 500);
             }
 
             // if ($cumulative){
@@ -108,7 +108,7 @@ class BalanceController extends Controller
             ->get()
             ->sum('value');
 
-            $balaceOfDate = Transaction::selectRaw("value, " . $typeOfDate)
+            $balanceOfDate = Transaction::selectRaw("value, " . $typeOfDate)
             ->where($typeOfDate, "=", $date)
             ->orderBy($typeOfDate, 'asc')
             ->get()
@@ -129,7 +129,7 @@ class BalanceController extends Controller
             ->get()
             ->sum('value');
 
-            $balaceOfMonth = Transaction::selectRaw("value, " . $typeOfDate)
+            $balanceOfMonth = Transaction::selectRaw("value, " . $typeOfDate)
             ->whereBetween($typeOfDate, [$firstDateOfMonth, $date])
             ->orderBy($typeOfDate, 'asc')
             ->get()
@@ -150,25 +150,25 @@ class BalanceController extends Controller
             ->get()
             ->sum('value');
 
-            $balaceOfAll = Transaction::selectRaw("value, " . $typeOfDate)
+            $balanceOfAll = Transaction::selectRaw("value, " . $typeOfDate)
             ->where($typeOfDate, "<=", $date)
             ->orderBy($typeOfDate, 'asc')
             ->get()
             ->sum('value');
 
             return response()->json([
-                "message" => "Saldo obtido de {$date}",
-                $ofDate => [
+                "message" => "Saldo obtido de {$dateQuery}",
+                "ofDate" => [
                     'incomes' => $incomesOfDate,
                     'expenses' => $expensesOfDate,
                     'balance' => $balanceOfDate  
                 ],
-                $ofMonth => [
+                "ofMonth" => [
                     'incomes' => $incomesOfMonth,
                     'expenses' => $expensesOfMonth,
                     'balance' => $balanceOfMonth  
                 ],
-                $ofDate => [
+                "ofAll" => [
                     'incomes' => $incomesOfAll,
                     'expenses' => $expensesOfAll,
                     'balance' => $balanceOfAll  
