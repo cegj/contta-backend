@@ -143,10 +143,10 @@ class TransactionController extends Controller
                 })->values();            
             }
 
-            foreach ($transactions as $transaction){
-                $transaction->category;
-                $transaction->account;
-            }
+            // foreach ($transactions as $transaction){
+            //     $transaction->category;
+            //     $transaction->account;
+            // }
 
             return response()->json(["message" => "Transações obtidas de {$from} até {$to}", 'transactions' => $transactions], 200);
 

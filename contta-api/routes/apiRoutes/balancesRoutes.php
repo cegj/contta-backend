@@ -1,0 +1,9 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BalanceController;
+
+// Protected routes
+Route::group(['middleware' => ['protectedRoute']], function(){
+  Route::get('/date', [BalanceController::class, 'getBalanceOfDate']);
+});

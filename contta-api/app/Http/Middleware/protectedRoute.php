@@ -27,7 +27,7 @@ class protectedRoute extends BaseMiddleware
             if ($e instanceof \Tymon\JWTAuth\Exceptions\TokenInvalidException){
                 return response()->json(['message' => 'Token de acesso inválido'], 401);
             }else if ($e instanceof \Tymon\JWTAuth\Exceptions\TokenExpiredException){
-                return response()->json(['message' => 'Token de acesso expirado'], 401);
+                return response()->json(['message' => 'Sessão expirada'], 401);
             }else{
                 return response()->json(['message' => 'Token de acesso não encontrado'], 401);
             }
