@@ -8,173 +8,169 @@ use DateTime;
 
 class BalanceController extends Controller
 {
-    public function getBalanceOfDate(Request $request){
+    public function getBalance(Request $request){
 
         /**
          * QUERIES:
-         * date: YYYY-MM-AA || YYYY-MM || YYYY (optional)
-         * typeofdate: transaction || payment (default)
+         * date: YYYY-MM-AA 
+         * from: YYYY-MM-AA
+         * to: YYYY-MM-AA
+         * typeofdate: transaction || payment 
          */
 
         try{
             // Get and set date
             $dateQuery = $request->query('date');
-            if (!$dateQuery){return response()->json(["message" => "É necessário informar uma data ('date') como YYYY-MM-DD"], 400);}
-            $date = explode('-', $dateQuery);
-            // $sizeOfDate = sizeOf($date);
+            $fromQuery = $request->query('from');
+            $toQuery = $request->query('to');
 
-            // if($sizeOfDate == 1){
-            //     $date = $date[0] . '-' . '12' . '-' . '31';
-            // } else if ($sizeOfDate == 2) {
-            //     $dateTime = new DateTime($dateQuery);
-            //     $dateTime->modify('last day of this month');
-            //     $date = $date[0] . '-' . $date[1] . '-' . $dateTime->format('d');
-            // } else if ($sizeOfDate == 3) {
-            //     $date = $date[0] . '-' . $date[1] . '-' . $date[2];
-            // }
-
-            //Check if date is valid
-            $dateIsValid = checkdate($date[1], $date[2], $date[0]);
-            if (!$dateIsValid){
-                return response()->json(["message" => "A data escolhida ({$dateQuery}) é inválida"], 400);
-            }
+            if (!$dateQuery){
+                if(!$fromQuery){
+                    return response()->json(["message" => "É necessário informar uma data ('date') ou uma data de início ('from') como YYYY-MM-DD"], 400);
+                } else if (!$toQuery){
+                    return response()->json(["message" => "Data de início ('from') deve ser informada em conjunto com data de término ('to')"], 400);
+                }
+            } 
 
             $typeOfDate = $request->query('typeofdate');
-            if ($typeOfDate && $typeOfDate == 'transaction'){
+            if ($typeOfDate){
+                if ($typeOfDate == 'transaction'){
                 $typeOfDate = 'transaction_date';
+                } else if ($typeOfDate == 'payment'){
+                    $typeOfDate = 'payment_date';
+                } else {
+                return response()->json(["message" => "O tipo de data ('typeofdate') é inválido, informe 'transaction' ou 'payment'"], 400);  
+                }
             } else {
-                $typeOfDate = 'payment_date';
+                return response()->json(["message" => "O tipo de data ('typeofdate') não foi informado, informe 'transaction' ou 'payment'"], 400);  
             }
 
-            $firstDateOfMonth = $date[0] . '-' . $date[1] . '-' . '01';
-            //Check if starting date is valid
-            $dateToCheck = explode('-', $firstDateOfMonth);
-            $dateIsValid = checkdate($dateToCheck[1], $dateToCheck[2], $dateToCheck[0]);
-            if (!$dateIsValid){
-                return response()->json(["message" => "A data de início {$firstDateOfMonth} calculada a partir da data ({$dateQuery}) é inválida"], 500);
+            if($dateQuery){
+                $date = explode('-', $dateQuery);
+                $dateIsValid = checkdate($date[1], $date[2], $date[0]);
+                if (!$dateIsValid){
+                    return response()->json(["message" => "A data escolhida ({$dateQuery}) é inválida"], 400);
+                }
+        
+                $firstDateOfMonth = $date[0] . '-' . $date[1] . '-' . '01';
+                $dateToCheck = explode('-', $firstDateOfMonth);
+                $dateIsValid = checkdate($dateToCheck[1], $dateToCheck[2], $dateToCheck[0]);
+                if (!$dateIsValid){
+                    return response()->json(["message" => "A data de início {$firstDateOfMonth} calculada a partir da data ({$dateQuery}) é inválida"], 500);
+                }
+    
+                //Date balance
+                $incomesOfDate = Transaction::select("value", $typeOfDate)
+                ->where($typeOfDate, '=', $dateQuery)
+                ->where('type', "=", 'R')
+                ->get()
+                ->sum('value');
+    
+                $expensesOfDate = Transaction::select("value", $typeOfDate)
+                ->where($typeOfDate, "=", $dateQuery)
+                ->where('type', "=", 'D')
+                ->get()
+                ->sum('value');
+    
+                $balanceOfDate = Transaction::select("value", $typeOfDate)
+                ->where($typeOfDate, "=", $dateQuery)
+                ->get()
+                ->sum('value');
+    
+                //Month balance until date
+                $incomesOfMonth = Transaction::select("value", $typeOfDate)
+                ->whereBetween($typeOfDate, [$firstDateOfMonth, $dateQuery])
+                ->where('type', "=", 'R')
+                ->get()
+                ->sum('value');
+    
+                $expensesOfMonth = Transaction::select("value", $typeOfDate)
+                ->whereBetween($typeOfDate, [$firstDateOfMonth, $dateQuery])
+                ->where('type', "=", 'D')
+                ->get()
+                ->sum('value');
+    
+                $balanceOfMonth = Transaction::select("value", $typeOfDate)
+                ->whereBetween($typeOfDate, [$firstDateOfMonth, $dateQuery])
+                ->get()
+                ->sum('value');
+    
+                //General balance until date
+                $incomesOfAll = Transaction::select("value", $typeOfDate)
+                ->where($typeOfDate, "<=", $dateQuery)
+                ->where('type', "=", 'R')
+                ->get()
+                ->sum('value');
+    
+                $expensesOfAll = Transaction::select("value", $typeOfDate)
+                ->where($typeOfDate, "<=", $dateQuery)
+                ->where('type', "=", 'D')
+                ->get()
+                ->sum('value');
+    
+                $balanceOfAll = Transaction::select("value", $typeOfDate)
+                ->where($typeOfDate, "<=", $dateQuery)
+                ->get()
+                ->sum('value');
+    
+                return response()->json([
+                    "message" => "Saldo obtido de {$dateQuery}",
+                    "date" => [
+                        'incomes' => $incomesOfDate,
+                        'expenses' => $expensesOfDate,
+                        'balance' => $balanceOfDate  
+                    ],
+                    "month_to_date" => [
+                        'incomes' => $incomesOfMonth,
+                        'expenses' => $expensesOfMonth,
+                        'balance' => $balanceOfMonth  
+                    ],
+                    "all_to_date" => [
+                        'incomes' => $incomesOfAll,
+                        'expenses' => $expensesOfAll,
+                        'balance' => $balanceOfAll  
+                    ],               
+                    ], 200);
+            } else {
+
+                $from = explode('-', $fromQuery);
+                $fromIsValid = checkdate($from[1], $from[2], $from[0]);
+                if (!$fromIsValid){
+                    return response()->json(["message" => "A data de início escolhida ({$fromQuery}) é inválida"], 400);
+                }
+
+                $to = explode('-', $toQuery);
+                $toIsValid = checkdate($to[1], $to[2], $to[0]);
+                if (!$toIsValid){
+                    return response()->json(["message" => "A data de término escolhida ({$toQuery}) é inválida"], 400);
+                }
+
+                $incomesOfRange = Transaction::select("value", $typeOfDate)
+                ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
+                ->where('type', "=", 'R')
+                ->get()
+                ->sum('value');
+    
+                $expensesOfRange = Transaction::select("value", $typeOfDate)
+                ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
+                ->where('type', "=", 'D')
+                ->get()
+                ->sum('value');
+    
+                $balanceOfRange = Transaction::select("value", $typeOfDate)
+                ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
+                ->get()
+                ->sum('value');
+
+                return response()->json([
+                    "message" => "Saldo obtido de {$fromQuery} a {$toQuery}",
+                    "daterange" => [
+                        'incomes' => $incomesOfRange,
+                        'expenses' => $expensesOfRange,
+                        'balance' => $balanceOfRange  
+                    ]
+                    ], 200);
             }
-
-            // if ($cumulative){
-            //     $incomes = Transaction::selectRaw("value, " . $typeOfDate)
-            //     ->where($typeOfDate, "<=", $date)
-            //     ->where('type', "=", 'R')
-            //     ->orderBy($typeOfDate, 'asc')
-            //     ->get()
-            //     ->sum('value');
-            //     $expenses = Transaction::selectRaw("value, " . $typeOfDate)
-            //     ->where($typeOfDate, "<=", $date)
-            //     ->where('type', "=", 'D')
-            //     ->orderBy($typeOfDate, 'asc')
-            //     ->get()
-            //     ->sum('value');
-            //     $balance = Transaction::selectRaw("value, " . $typeOfDate)
-            //     ->where($typeOfDate, "<=", $date)
-            //     ->orderBy($typeOfDate, 'asc')
-            //     ->get()
-            //     ->sum('value');
-            //     $message = "Saldo obtido até {$date}";
-            // } else {
-            //     $incomes = Transaction::selectRaw("value, " . $typeOfDate)
-            //     ->whereBetween($typeOfDate, [$startingDate, $date])
-            //     ->where('type', "=", 'R')
-            //     ->orderBy($typeOfDate, 'asc')
-            //     ->get()
-            //     ->sum('value');
-            //     $expenses = Transaction::selectRaw("value, " . $typeOfDate)
-            //     ->whereBetween($typeOfDate, [$startingDate, $date])
-            //     ->where('type', "=", 'D')
-            //     ->orderBy($typeOfDate, 'asc')
-            //     ->get()
-            //     ->sum('value');
-            //     $balance = Transaction::selectRaw("value, " . $typeOfDate)
-            //     ->where($typeOfDate, "<=", $date)
-            //     ->whereBetween($typeOfDate, [$startingDate, $date])
-            //     ->get()
-            //     ->sum('value');
-            //     $message = "Saldo obtido de {$startingDate} até {$date}";
-
-            //Date balance
-            $incomesOfDate = Transaction::selectRaw("value, " . $typeOfDate)
-            ->where($typeOfDate, "=", $date)
-            ->where('type', "=", 'R')
-            ->orderBy($typeOfDate, 'asc')
-            ->get()
-            ->sum('value');
-
-            $expensesOfDate = Transaction::selectRaw("value, " . $typeOfDate)
-            ->where($typeOfDate, "=", $date)
-            ->where('type', "=", 'R')
-            ->orderBy($typeOfDate, 'asc')
-            ->get()
-            ->sum('value');
-
-            $balanceOfDate = Transaction::selectRaw("value, " . $typeOfDate)
-            ->where($typeOfDate, "=", $date)
-            ->orderBy($typeOfDate, 'asc')
-            ->get()
-            ->sum('value');
-
-            //Month balance until date
-            $incomesOfMonth = Transaction::selectRaw("value, " . $typeOfDate)
-            ->whereBetween($typeOfDate, [$firstDateOfMonth, $date])
-            ->where('type', "=", 'R')
-            ->orderBy($typeOfDate, 'asc')
-            ->get()
-            ->sum('value');
-
-            $expensesOfMonth = Transaction::selectRaw("value, " . $typeOfDate)
-            ->whereBetween($typeOfDate, [$firstDateOfMonth, $date])
-            ->where('type', "=", 'R')
-            ->orderBy($typeOfDate, 'asc')
-            ->get()
-            ->sum('value');
-
-            $balanceOfMonth = Transaction::selectRaw("value, " . $typeOfDate)
-            ->whereBetween($typeOfDate, [$firstDateOfMonth, $date])
-            ->orderBy($typeOfDate, 'asc')
-            ->get()
-            ->sum('value');
-
-            //General balance until date
-            $incomesOfAll = Transaction::selectRaw("value, " . $typeOfDate)
-            ->where($typeOfDate, "<=", $date)
-            ->where('type', "=", 'R')
-            ->orderBy($typeOfDate, 'asc')
-            ->get()
-            ->sum('value');
-
-            $expensesOfAll = Transaction::selectRaw("value, " . $typeOfDate)
-            ->where($typeOfDate, "<=", $date)
-            ->where('type', "=", 'R')
-            ->orderBy($typeOfDate, 'asc')
-            ->get()
-            ->sum('value');
-
-            $balanceOfAll = Transaction::selectRaw("value, " . $typeOfDate)
-            ->where($typeOfDate, "<=", $date)
-            ->orderBy($typeOfDate, 'asc')
-            ->get()
-            ->sum('value');
-
-            return response()->json([
-                "message" => "Saldo obtido de {$dateQuery}",
-                "ofDate" => [
-                    'incomes' => $incomesOfDate,
-                    'expenses' => $expensesOfDate,
-                    'balance' => $balanceOfDate  
-                ],
-                "ofMonth" => [
-                    'incomes' => $incomesOfMonth,
-                    'expenses' => $expensesOfMonth,
-                    'balance' => $balanceOfMonth  
-                ],
-                "ofAll" => [
-                    'incomes' => $incomesOfAll,
-                    'expenses' => $expensesOfAll,
-                    'balance' => $balanceOfAll  
-                ],               
-                ], 200);
-            
         } catch (\Throwable $th) {
             return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
         }

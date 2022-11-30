@@ -5,5 +5,5 @@ use App\Http\Controllers\BalanceController;
 
 // Protected routes
 Route::group(['middleware' => ['protectedRoute']], function(){
-  Route::get('/date', [BalanceController::class, 'getBalanceOfDate']);
+  Route::get('/', [BalanceController::class, 'getBalance']);
 });
