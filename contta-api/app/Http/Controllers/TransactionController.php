@@ -49,7 +49,7 @@ class TransactionController extends Controller
          * category: integer
          * account: integer
          * installments_key: string/number
-         * typeofdate: string ('transaction' (default), 'payment')
+         * typeofdate: string ('transaction_date', 'payment_date')
          */
 
         try {
@@ -99,10 +99,13 @@ class TransactionController extends Controller
             }
 
             $typeOfDate = $request->query('typeofdate');
-            if ($typeOfDate && $typeOfDate == 'payment'){
-                $typeOfDate = 'payment_date';
+            if ($typeOfDate){
+                if (!$typeOfDate == 'transaction_date'){
+                    if (!$typeOfDate == 'payment_date'){
+                        return response()->json(["message" => "O tipo de data ('typeofdate') é inválido, informe 'transaction_date' ou 'payment_date'"], 400);  
+                    }}
             } else {
-                $typeOfDate = 'transaction_date';
+                return response()->json(["message" => "O tipo de data ('typeofdate') não foi informado"], 400);
             }
 
             //Building the query to db
