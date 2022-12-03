@@ -37,9 +37,9 @@ class BalanceController extends Controller
                 if (!$typeOfDate == 'transaction_date'){
                     if (!$typeOfDate == 'payment_date'){
                         return response()->json(["message" => "O tipo de data ('typeofdate') é inválido, informe 'transaction_date' ou 'payment_date'"], 400);  
-                    }
+                    }}
             } else {
-                return response()->json(["message" => "O tipo de data ('typeofdate') não foi informado"], 400);  
+                return response()->json(["message" => "O tipo de data ('typeofdate') não foi informado"], 400);
             }
 
             if($dateQuery){
