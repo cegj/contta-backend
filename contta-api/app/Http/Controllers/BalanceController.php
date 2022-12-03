@@ -16,6 +16,7 @@ class BalanceController extends Controller
          * from: YYYY-MM-AA
          * to: YYYY-MM-AA
          * typeofdate: transaction || payment 
+         * includepreview: true || false
          */
 
         try{
@@ -42,6 +43,17 @@ class BalanceController extends Controller
                 return response()->json(["message" => "O tipo de data ('typeofdate') não foi informado"], 400);
             }
 
+            $includeExpected = $request->query('includeexpected');
+            if ($includeExpected){
+                if ($includeExpected == 'true' || $includeExpected == 'false'){
+                    $includeExpected = $includeExpected === 'true' ? true : false;
+                } else {
+                  return response()->json(["message" => "O parâmetro incluir transações previstas ('includeexpected') é inválido, informe 'true' ou 'false'"], 400);  
+                }
+            } else {
+                return response()->json(["message" => "O parâmetro incluir transações previstas ('includeexpected') deve ser informado"], 400);
+            }
+
             if($dateQuery){
                 $date = explode('-', $dateQuery);
                 $dateIsValid = checkdate($date[1], $date[2], $date[0]);
@@ -55,59 +67,68 @@ class BalanceController extends Controller
                 if (!$dateIsValid){
                     return response()->json(["message" => "A data de início {$firstDateOfMonth} calculada a partir da data ({$dateQuery}) é inválida"], 500);
                 }
-    
+                
                 //Date balance
                 $incomesOfDate = Transaction::select("value", $typeOfDate)
                 ->where($typeOfDate, '=', $dateQuery)
-                ->where('type', "=", 'R')
-                ->get()
+                ->where('type', "=", 'R');
+                if(!$includeExpected){$incomesOfDate->where('preview', '=', 0);}
+                $incomesOfDate->get()
                 ->sum('value');
     
                 $expensesOfDate = Transaction::select("value", $typeOfDate)
                 ->where($typeOfDate, "=", $dateQuery)
-                ->where('type', "=", 'D')
-                ->get()
+                ->where('type', "=", 'D');
+                if(!$includeExpected){$incomesOfDate->where('preview', '=', 0);}
+                $incomesOfDate->get()
                 ->sum('value');
     
                 $balanceOfDate = Transaction::select("value", $typeOfDate)
-                ->where($typeOfDate, "=", $dateQuery)
-                ->get()
+                ->where($typeOfDate, "=", $dateQuery);
+                if(!$includeExpected){$incomesOfDate->where('preview', '=', 0);}
+                $incomesOfDate->get()
                 ->sum('value');
     
                 //Month balance until date
                 $incomesOfMonth = Transaction::select("value", $typeOfDate)
                 ->whereBetween($typeOfDate, [$firstDateOfMonth, $dateQuery])
-                ->where('type', "=", 'R')
-                ->get()
+                ->where('type', "=", 'R');
+                if(!$includeExpected){$incomesOfDate->where('preview', '=', 0);}
+                $incomesOfDate->get()
                 ->sum('value');
     
                 $expensesOfMonth = Transaction::select("value", $typeOfDate)
                 ->whereBetween($typeOfDate, [$firstDateOfMonth, $dateQuery])
-                ->where('type', "=", 'D')
-                ->get()
+                ->where('type', "=", 'D');
+                if(!$includeExpected){$incomesOfDate->where('preview', '=', 0);}
+                $incomesOfDate->get()
                 ->sum('value');
     
                 $balanceOfMonth = Transaction::select("value", $typeOfDate)
-                ->whereBetween($typeOfDate, [$firstDateOfMonth, $dateQuery])
-                ->get()
+                ->whereBetween($typeOfDate, [$firstDateOfMonth, $dateQuery]);
+                if(!$includeExpected){$incomesOfDate->where('preview', '=', 0);}
+                $incomesOfDate->get()
                 ->sum('value');
     
                 //General balance until date
                 $incomesOfAll = Transaction::select("value", $typeOfDate)
                 ->where($typeOfDate, "<=", $dateQuery)
-                ->where('type', "=", 'R')
-                ->get()
+                ->where('type', "=", 'R');
+                if(!$includeExpected){$incomesOfDate->where('preview', '=', 0);}
+                $incomesOfDate->get()
                 ->sum('value');
     
                 $expensesOfAll = Transaction::select("value", $typeOfDate)
                 ->where($typeOfDate, "<=", $dateQuery)
-                ->where('type', "=", 'D')
-                ->get()
+                ->where('type', "=", 'D');
+                if(!$includeExpected){$incomesOfDate->where('preview', '=', 0);}
+                $incomesOfDate->get()
                 ->sum('value');
     
                 $balanceOfAll = Transaction::select("value", $typeOfDate)
-                ->where($typeOfDate, "<=", $dateQuery)
-                ->get()
+                ->where($typeOfDate, "<=", $dateQuery);
+                if(!$includeExpected){$incomesOfDate->where('preview', '=', 0);}
+                $incomesOfDate->get()
                 ->sum('value');
     
                 return response()->json([
@@ -144,19 +165,22 @@ class BalanceController extends Controller
 
                 $incomesOfRange = Transaction::select("value", $typeOfDate)
                 ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
-                ->where('type', "=", 'R')
-                ->get()
+                ->where('type', "=", 'R');
+                if(!$includeExpected){$incomesOfDate->where('preview', '=', 0);}
+                $incomesOfDate->get()
                 ->sum('value');
     
                 $expensesOfRange = Transaction::select("value", $typeOfDate)
                 ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
-                ->where('type', "=", 'D')
-                ->get()
+                ->where('type', "=", 'D');
+                if(!$includeExpected){$incomesOfDate->where('preview', '=', 0);}
+                $incomesOfDate->get()
                 ->sum('value');
     
                 $balanceOfRange = Transaction::select("value", $typeOfDate)
-                ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
-                ->get()
+                ->whereBetween($typeOfDate, [$fromQuery, $toQuery]);
+                if(!$includeExpected){$incomesOfDate->where('preview', '=', 0);}
+                $incomesOfDate->get()
                 ->sum('value');
 
                 return response()->json([
