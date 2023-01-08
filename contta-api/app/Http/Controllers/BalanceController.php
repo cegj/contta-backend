@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Transaction;
+use App\Models\Category;
 use DateTime;
 
 class BalanceController extends Controller
@@ -19,7 +20,7 @@ class BalanceController extends Controller
          * includepreview: true || false
          */
 
-        // try{
+        try{
             // Get and set date
             $dateQuery = $request->query('date');
             $fromQuery = $request->query('from');
@@ -35,8 +36,8 @@ class BalanceController extends Controller
 
             $typeOfDate = $request->query('typeofdate');
             if ($typeOfDate){
-                if (!$typeOfDate == 'transaction_date'){
-                    if (!$typeOfDate == 'payment_date'){
+                if ($typeOfDate != 'transaction_date'){
+                    if ($typeOfDate != 'payment_date'){
                         return response()->json(["message" => "O tipo de data ('typeofdate') é inválido, informe 'transaction_date' ou 'payment_date'"], 400);  
                     }}
             } else {
@@ -255,9 +256,76 @@ class BalanceController extends Controller
                     ]
                     ], 200);
             }
-        // } catch (\Throwable $th) {
-        //     return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
-        // }
+        } catch (\Throwable $th) {
+            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
+        }   
+    }
+
+    public function getBalanceForBudget(Request $request){
+
+        /**
+         * QUERIES:
+         * year: YYYY (string)
+         * typeofdate: transaction_date || payment_date (string)
+         */
+
+        try{
+            // Get and set date
+            $dateQuery = $request->query('date');
+
+            if (!$dateQuery){
+                return response()->json(["message" => "É necessário informar uma data ('date') ou uma data de início ('from') como YYYY-MM-DD"], 400);
+            } else {
+                $date = explode('-', $dateQuery);
+                $dateIsValid = checkdate($date[1], $date[2], $date[0]);
+                if (!$dateIsValid){
+                    return response()->json(["message" => "A data escolhida ({$dateQuery}) é inválida"], 400);
+                }
+            }
+
+            $typeOfDate = $request->query('typeofdate');
+            if ($typeOfDate){
+                if ($typeOfDate != 'transaction_date'){
+                    if (!$typeOfDate != 'payment_date'){
+                        return response()->json(["message" => "O tipo de data ('typeofdate') é inválido, informe 'transaction_date' ou 'payment_date'"], 400);  
+                    }}
+            } else {
+                return response()->json(["message" => "O tipo de data ('typeofdate') deve ser informado"], 400);
+            }
+
+            $categories = Category::all();
+
+            $response = [];
+            
+            foreach ($categories as $category){
+
+                $response[$category->id] = [];
+
+                $balanceExpected = Transaction::select("value", $typeOfDate)
+                ->where($typeOfDate, "<=", $dateQuery)
+                ->where('category_id', '=', $category->id)
+                ->get()
+                ->sum('value');
+
+                $balanceMade = Transaction::select("value", $typeOfDate)
+                ->where($typeOfDate, "<=", $dateQuery)
+                ->where('preview', "=", '0')
+                ->where('category_id', '=', $category->id)
+                ->get()
+                ->sum('value');
+
+                $response[$category->id] = [
+                    'category_name' => $category->name,
+                    'expected' => $balanceExpected,
+                    'made' => $balanceMade
+                ];
+            }
+        
+            return response()->json(["message" => "Saldos de {$dateQuery} obtidos com sucesso para todas as categorias", "balances" => $response], 200);
+
+        } catch (\Throwable $th) {
+            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
+        }
             
     }
 }
