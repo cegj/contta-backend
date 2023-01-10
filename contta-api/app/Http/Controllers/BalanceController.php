@@ -271,16 +271,23 @@ class BalanceController extends Controller
 
         try{
             // Get and set date
-            $dateQuery = $request->query('date');
+            $fromQuery = $request->query('from');
+            $toQuery = $request->query('to');
 
-            if (!$dateQuery){
-                return response()->json(["message" => "É necessário informar uma data ('date') ou uma data de início ('from') como YYYY-MM-DD"], 400);
-            } else {
-                $date = explode('-', $dateQuery);
-                $dateIsValid = checkdate($date[1], $date[2], $date[0]);
-                if (!$dateIsValid){
-                    return response()->json(["message" => "A data escolhida ({$dateQuery}) é inválida"], 400);
-                }
+            if(!$fromQuery){
+                return response()->json(["message" => "É necessário informar uma data de início ('from') como YYYY-MM-DD"], 400);
+            } else if (!$toQuery){
+                return response()->json(["message" => "Data de início ('from') deve ser informada em conjunto com data de término ('to')"], 400);
+            }
+            $from = explode('-', $fromQuery);
+            $fromIsValid = checkdate($from[1], $from[2], $from[0]);
+            if (!$fromIsValid){
+                return response()->json(["message" => "A data de início escolhida ({$fromQuery}) é inválida"], 400);
+            }
+            $to = explode('-', $toQuery);
+            $toIsValid = checkdate($to[1], $to[2], $to[0]);
+            if (!$toIsValid){
+                return response()->json(["message" => "A data de término escolhida ({$toQuery}) é inválida"], 400);
             }
 
             $typeOfDate = $request->query('typeofdate');
@@ -299,46 +306,60 @@ class BalanceController extends Controller
             
             foreach ($categories as $category){
 
-                $response[$category->id] = [];
+                $response['categories'][$category->id] = [];
 
                 $balanceExpected = Transaction::select("value", $typeOfDate)
-                ->where($typeOfDate, "<=", $dateQuery)
+                ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
                 ->where('category_id', '=', $category->id)
                 ->get()
                 ->sum('value');
 
                 $balanceMade = Transaction::select("value", $typeOfDate)
-                ->where($typeOfDate, "<=", $dateQuery)
+                ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
                 ->where('preview', "=", '0')
                 ->where('category_id', '=', $category->id)
                 ->get()
                 ->sum('value');
 
-                $response[$category->id] = [
+                $response['categories'][$category->id] = [
                     'expected' => $balanceExpected,
                     'made' => $balanceMade
                 ];
             }
 
-            $response['final_balance'] = [];
-
-            $balanceExpected = Transaction::select("value", $typeOfDate)
-            ->where($typeOfDate, "<=", $dateQuery)
+            $balanceMonthExpected = Transaction::select("value", $typeOfDate)
+            ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
             ->get()
             ->sum('value');
 
-            $balanceMade = Transaction::select("value", $typeOfDate)
-            ->where($typeOfDate, "<=", $dateQuery)
+            $balanceMonthMade = Transaction::select("value", $typeOfDate)
+            ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
             ->where('preview', "=", '0')
             ->get()
             ->sum('value');
 
-            $response['all_categories'] = [
-                'expected' => $balanceExpected,
-                'made' => $balanceMade
+            $response['all_month'] = [
+                'expected' => $balanceMonthExpected,
+                'made' => $balanceMonthMade
+            ];
+
+            $balanceAccumulatedExpected = Transaction::select("value", $typeOfDate)
+            ->where($typeOfDate, "<=", $toQuery)
+            ->get()
+            ->sum('value');
+
+            $balanceAccumulatedExpected = Transaction::select("value", $typeOfDate)
+            ->where($typeOfDate, "<=", $toQuery)
+            ->where('preview', "=", '0')
+            ->get()
+            ->sum('value');
+
+            $response['all_accumulated'] = [
+                'expected' => $balanceAccumulatedExpected,
+                'made' => $balanceAccumulatedExpected
             ];
         
-            return response()->json(["message" => "Saldos de {$dateQuery} obtidos com sucesso para todas as categorias", "balances" => $response], 200);
+            return response()->json(["message" => "Saldos de {$fromQuery} a {$toQuery} obtidos com sucesso para todas as categorias", "balances" => $response], 200);
 
         } catch (\Throwable $th) {
             return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
