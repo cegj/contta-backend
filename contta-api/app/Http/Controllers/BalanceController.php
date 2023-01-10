@@ -265,7 +265,7 @@ class BalanceController extends Controller
 
         /**
          * QUERIES:
-         * year: YYYY (string)
+         * date: YYYY-MM-DD (string)
          * typeofdate: transaction_date || payment_date (string)
          */
 
@@ -315,11 +315,28 @@ class BalanceController extends Controller
                 ->sum('value');
 
                 $response[$category->id] = [
-                    'category_name' => $category->name,
                     'expected' => $balanceExpected,
                     'made' => $balanceMade
                 ];
             }
+
+            $response['final_balance'] = [];
+
+            $balanceExpected = Transaction::select("value", $typeOfDate)
+            ->where($typeOfDate, "<=", $dateQuery)
+            ->get()
+            ->sum('value');
+
+            $balanceMade = Transaction::select("value", $typeOfDate)
+            ->where($typeOfDate, "<=", $dateQuery)
+            ->where('preview', "=", '0')
+            ->get()
+            ->sum('value');
+
+            $response['all_categories'] = [
+                'expected' => $balanceExpected,
+                'made' => $balanceMade
+            ];
         
             return response()->json(["message" => "Saldos de {$dateQuery} obtidos com sucesso para todas as categorias", "balances" => $response], 200);
 
