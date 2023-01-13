@@ -348,7 +348,7 @@ class BalanceController extends Controller
             ->get()
             ->sum('value');
 
-            $balanceAccumulatedExpected = Transaction::select("value", $typeOfDate)
+            $balanceAccumulatedMade = Transaction::select("value", $typeOfDate)
             ->where($typeOfDate, "<=", $toQuery)
             ->where('preview', "=", '0')
             ->get()
@@ -356,7 +356,7 @@ class BalanceController extends Controller
 
             $response['all_accumulated'] = [
                 'expected' => $balanceAccumulatedExpected,
-                'made' => $balanceAccumulatedExpected
+                'made' => $balanceAccumulatedMade
             ];
         
             return response()->json(["message" => "Saldos de {$fromQuery} a {$toQuery} obtidos com sucesso para todas as categorias", "balances" => $response], 200);
