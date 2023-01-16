@@ -109,7 +109,9 @@ class TransactionController extends Controller
             }
 
             $account = $request->query('account');
+            if ($account === "0"){$account = "null";};
             $category = $request->query('category');
+            if ($category === "0"){$category = "null";};
             $type = $request->query('type');
             $installments_key = $request->query('installments_key');
 
