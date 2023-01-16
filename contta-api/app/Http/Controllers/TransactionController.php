@@ -108,43 +108,26 @@ class TransactionController extends Controller
                 return response()->json(["message" => "O tipo de data ('typeofdate') não foi informado"], 400);
             }
 
+            $account = $request->query('account');
+            $category = $request->query('category');
+            $type = $request->query('type');
+            $installments_key = $request->query('installments_key');
+
             //Building the query to db
             $transactions = Transaction::whereDate($typeOfDate, ">=", $from)
             ->whereDate($typeOfDate, "<=", $to)
+            ->when($account, function($q, $account){
+                if ($account === "null") {return $q->whereNull('account_id');}
+                else return $q->where('account_id', '=', $account);})    
+            ->when($category, function($q, $category){
+                if ($category === "null") {return $q->whereNull('category_id');}
+                else return $q->where('category_id', '=', $category);})    
+            ->when($type, function($q, $type){
+                return $q->where('type', '=', $type);})     
+            ->when($installments_key, function($q, $installments_key){
+                return $q->where('installments_key', '=', $installments_key);})   
             ->orderBy($typeOfDate, 'asc')
             ->get();
-
-            //Filter by category
-            $categoryId = $request->query('category');
-            if ($categoryId) {
-                $transactions = $transactions->filter(function ($transaction) use ($categoryId) {
-                    return $transaction->category_id == $categoryId;
-                })->values();            
-            }
-
-            //Filter by account
-            $accountId = $request->query('account');
-            if ($accountId) {
-                $transactions = $transactions->filter(function ($transaction) use ($accountId) {
-                    return $transaction->account_id == $accountId;
-                })->values();            
-            }
-
-            //Filter by type
-            $type = $request->query('type');
-            if ($type) {
-                $transactions = $transactions->filter(function ($transaction) use ($type) {
-                    return $transaction->type == $type;
-                })->values();            
-            }
-
-            //Filter by installments_key
-            $installments_key = $request->query('installments_key');
-            if ($installments_key) {
-                $transactions = $transactions->filter(function ($transaction) use ($installments_key) {
-                    return $transaction->installments_key == $installments_key;
-                })->values();            
-            }
 
             foreach ($transactions as $transaction){
                 $transaction->category;
