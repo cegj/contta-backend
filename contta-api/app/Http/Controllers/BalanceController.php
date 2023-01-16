@@ -16,8 +16,10 @@ class BalanceController extends Controller
          * date: YYYY-MM-AA 
          * from: YYYY-MM-AA
          * to: YYYY-MM-AA
-         * typeofdate: transaction || payment 
+         * typeofdate: transaction_date || payment_date 
          * includepreview: true || false
+         * account: int/string
+         * category: int/string
          */
 
         try{
@@ -56,7 +58,9 @@ class BalanceController extends Controller
             }
 
             $account = $request->query('account');
+            if ($account === "0"){$account = "null";};
             $category = $request->query('category');
+            if ($category === "0"){$category = "null";};
 
             if($dateQuery){
                 $date = explode('-', $dateQuery);
@@ -79,9 +83,11 @@ class BalanceController extends Controller
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
-                    return $q->where('account_id', '=', $account);})    
+                    if ($account === "null") {return $q->whereNull('account_id');}
+                    else return $q->where('account_id', '=', $account);})    
                 ->when($category, function($q, $category){
-                    return $q->where('category_id', '=', $category);})    
+                    if ($category === "null") {return $q->whereNull('category_id');}
+                    else return $q->where('category_id', '=', $category);})    
                 ->get()
                 ->sum('value');
     
@@ -91,9 +97,11 @@ class BalanceController extends Controller
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
-                    return $q->where('account_id', '=', $account);})    
+                    if ($account === "null") {return $q->whereNull('account_id');}
+                    else return $q->where('account_id', '=', $account);})    
                 ->when($category, function($q, $category){
-                    return $q->where('category_id', '=', $category);})    
+                    if ($category === "null") {return $q->whereNull('category_id');}
+                    else return $q->where('category_id', '=', $category);})    
                 ->get()
                 ->sum('value');
     
@@ -102,10 +110,12 @@ class BalanceController extends Controller
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
-                    return $q->where('account_id', '=', $account);})    
+                    if ($account === "null") {return $q->whereNull('account_id');}
+                    else return $q->where('account_id', '=', $account);})    
                 ->when($category, function($q, $category){
-                    return $q->where('category_id', '=', $category);})        
-                ->get()
+                    if ($category === "null") {return $q->whereNull('category_id');}
+                    else return $q->where('category_id', '=', $category);})    
+                    ->get()
                 ->sum('value');
     
                 //Month balance until date
@@ -115,9 +125,11 @@ class BalanceController extends Controller
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})            
                 ->when($account, function($q, $account){
-                    return $q->where('account_id', '=', $account);})    
+                    if ($account === "null") {return $q->whereNull('account_id');}
+                    else return $q->where('account_id', '=', $account);})    
                 ->when($category, function($q, $category){
-                    return $q->where('category_id', '=', $category);})     
+                    if ($category === "null") {return $q->whereNull('category_id');}
+                    else return $q->where('category_id', '=', $category);})    
                 ->get()
                 ->sum('value');
     
@@ -127,9 +139,11 @@ class BalanceController extends Controller
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
-                    return $q->where('account_id', '=', $account);})    
+                    if ($account === "null") {return $q->whereNull('account_id');}
+                    else return $q->where('account_id', '=', $account);})    
                 ->when($category, function($q, $category){
-                    return $q->where('category_id', '=', $category);})    
+                    if ($category === "null") {return $q->whereNull('category_id');}
+                    else return $q->where('category_id', '=', $category);})    
                 ->get()
                 ->sum('value');
     
@@ -138,9 +152,11 @@ class BalanceController extends Controller
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
-                    return $q->where('account_id', '=', $account);})    
+                    if ($account === "null") {return $q->whereNull('account_id');}
+                    else return $q->where('account_id', '=', $account);})    
                 ->when($category, function($q, $category){
-                    return $q->where('category_id', '=', $category);})       
+                    if ($category === "null") {return $q->whereNull('category_id');}
+                    else return $q->where('category_id', '=', $category);})    
                 ->get()
                 ->sum('value');
     
@@ -151,9 +167,11 @@ class BalanceController extends Controller
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
-                    return $q->where('account_id', '=', $account);})    
+                    if ($account === "null") {return $q->whereNull('account_id');}
+                    else return $q->where('account_id', '=', $account);})    
                 ->when($category, function($q, $category){
-                    return $q->where('category_id', '=', $category);})        
+                    if ($category === "null") {return $q->whereNull('category_id');}
+                    else return $q->where('category_id', '=', $category);})                  
                 ->get()
                 ->sum('value');
     
@@ -163,9 +181,11 @@ class BalanceController extends Controller
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
-                    return $q->where('account_id', '=', $account);})    
+                    if ($account === "null") {return $q->whereNull('account_id');}
+                    else return $q->where('account_id', '=', $account);})    
                 ->when($category, function($q, $category){
-                    return $q->where('category_id', '=', $category);})            
+                    if ($category === "null") {return $q->whereNull('category_id');}
+                    else return $q->where('category_id', '=', $category);})           
                 ->get()
                 ->sum('value');
     
@@ -174,9 +194,11 @@ class BalanceController extends Controller
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
-                    return $q->where('account_id', '=', $account);})    
+                    if ($account === "null") {return $q->whereNull('account_id');}
+                    else return $q->where('account_id', '=', $account);})    
                 ->when($category, function($q, $category){
-                    return $q->where('category_id', '=', $category);})            
+                    if ($category === "null") {return $q->whereNull('category_id');}
+                    else return $q->where('category_id', '=', $category);})                     
                 ->get()
                 ->sum('value');
     
@@ -218,9 +240,11 @@ class BalanceController extends Controller
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
-                    return $q->where('account_id', '=', $account);})    
+                    if ($account === "null") {return $q->whereNull('account_id');}
+                    else return $q->where('account_id', '=', $account);})    
                 ->when($category, function($q, $category){
-                    return $q->where('category_id', '=', $category);})             
+                    if ($category === "null") {return $q->whereNull('category_id');}
+                    else return $q->where('category_id', '=', $category);})                    
                 ->get()
                 ->sum('value');
     
@@ -230,9 +254,11 @@ class BalanceController extends Controller
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
-                    return $q->where('account_id', '=', $account);})    
+                    if ($account === "null") {return $q->whereNull('account_id');}
+                    else return $q->where('account_id', '=', $account);})    
                 ->when($category, function($q, $category){
-                    return $q->where('category_id', '=', $category);})            
+                    if ($category === "null") {return $q->whereNull('category_id');}
+                    else return $q->where('category_id', '=', $category);})      
                 ->get()
                 ->sum('value');
     
@@ -241,9 +267,11 @@ class BalanceController extends Controller
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
-                    return $q->where('account_id', '=', $account);})    
+                    if ($account === "null") {return $q->whereNull('account_id');}
+                    else return $q->where('account_id', '=', $account);})    
                 ->when($category, function($q, $category){
-                    return $q->where('category_id', '=', $category);})          
+                    if ($category === "null") {return $q->whereNull('category_id');}
+                    else return $q->where('category_id', '=', $category);})                    
                 ->get()
                 ->sum('value');
 
