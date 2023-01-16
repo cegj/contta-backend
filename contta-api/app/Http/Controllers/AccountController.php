@@ -143,6 +143,17 @@ class AccountController extends Controller
                 $accounts = Account::all();
             }
 
+            $unset = ["id" => 0,
+            "name" => "Sem conta",
+            "type" => "Sem conta",
+            "initial_balance" => null,
+            "show" => null,
+            "created_at" => null,
+            "updated_at"=> null
+            ];
+
+            $accounts->push($unset);
+
             return response()->json(["message" => "Contas recuperadas com sucesso", "accounts" => $accounts], 200);
         } catch (\Throwable $th) {
             return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);

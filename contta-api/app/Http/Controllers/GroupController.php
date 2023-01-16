@@ -94,6 +94,22 @@ class GroupController extends Controller
                 $group->categories;
             }
 
+            $unset = [
+                "id" => 0,
+                "name" => "Sem categoria",
+                "created_at" => null,
+                "updated_at" => null,
+                "categories" => [
+                    [
+                        "id" => 0,
+                        "name" => "Sem categoria",
+                        "group_id" => 0,
+                        "created_at" => null,
+                        "updated_at" => null
+                    ]]];
+
+            $groups->push($unset);
+
             return response()->json(["message" => "Grupos e categorias recuperados com sucesso", "groups" => $groups], 200); 
 
         } catch (\Throwable $th) {
