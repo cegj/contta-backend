@@ -355,6 +355,23 @@ class BalanceController extends Controller
                 ];
             }
 
+            $balanceNullCatExpected = Transaction::select("value", $typeOfDate)
+            ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
+            ->whereNull('category_id')
+            ->get()
+            ->sum('value');
+
+            $balanceNullCatMade = Transaction::select("value", $typeOfDate)
+            ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
+            ->where('preview', "=", '0')
+            ->whereNull('category_id')
+            ->get()
+            ->sum('value');
+
+            $response['categories']["0"] = [
+                "expected" => $balanceNullCatExpected,
+                "made" => $balanceNullCatMade];
+
             $balanceMonthExpected = Transaction::select("value", $typeOfDate)
             ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
             ->get()
