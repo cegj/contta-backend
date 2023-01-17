@@ -24,11 +24,11 @@ return new class extends Migration
             $table->string('type');
             $table->integer('value');
             $table->string('description');
-            $table->unsignedBigInteger('category_id')->nullable();
+            $table->unsignedBigInteger('category_id')->nullable()->default(null);
             $table->foreign('category_id')->references('id')->on('categories')->onDelete('set null');
-            $table->unsignedBigInteger('account_id')->nullable();
+            $table->unsignedBigInteger('account_id')->nullable()->default(null);
             $table->foreign('account_id')->references('id')->on('accounts')->onDelete('set null');
-            $table->unsignedBigInteger('user_id')->nullable();
+            $table->unsignedBigInteger('user_id')->nullable()->default(null);
             $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
             $table->boolean('preview')->default(false);
             $table->boolean('usual')->default(false);

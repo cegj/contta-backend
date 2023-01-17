@@ -263,9 +263,9 @@ class TransactionController extends Controller
                 $transaction->type = 'R';
                 $transaction->value = (int)$value;
                 $transaction->description = $description;
-                $transaction->category_id = (int)$category_id;
-                $transaction->account_id = (int)$account_id;
-                $transaction->user_id = (int)$user_id;
+                $transaction->category_id = $category_id;
+                $transaction->account_id = $account_id;
+                $transaction->user_id = $user_id;
                 $transaction->preview = $preview;
                 $transaction->usual = $usual;
                 $transaction->installments_key = $installments_key;
@@ -357,9 +357,9 @@ class TransactionController extends Controller
                 $transaction->type = 'D';
                 $transaction->value = (int)$value * -1;
                 $transaction->description = $description;
-                $transaction->category_id = (int)$category_id;
-                $transaction->account_id = (int)$account_id;
-                $transaction->user_id = (int)$user_id;
+                $transaction->category_id = $category_id;
+                $transaction->account_id = $account_id;
+                $transaction->user_id = $user_id;
                 $transaction->preview = $preview;
                 $transaction->usual = $usual;
                 $transaction->installments_key = $installments_key;
@@ -436,8 +436,8 @@ class TransactionController extends Controller
             $origin->type = 'T';
             $origin->value = (int)$value * -1;
             $origin->description = $description;
-            $origin->account_id = (int)$account_id;
-            $origin->user_id = (int)$user_id;
+            $origin->account_id = $account_id;
+            $origin->user_id = $user_id;
             $origin->preview = 0;
             $origin->usual = $usual;
             $origin->transfer_key = $transfer_key;
@@ -450,8 +450,8 @@ class TransactionController extends Controller
             $destination->type = 'T';
             $destination->value = (int)$value;
             $destination->description = $description;
-            $destination->account_id = (int)$destination_account_id;
-            $destination->user_id = (int)$user_id;
+            $destination->account_id = $destination_account_id;
+            $destination->user_id = $user_id;
             $destination->preview = 0;
             $destination->usual = $usual;
             $destination->transfer_key = $transfer_key;
@@ -512,8 +512,8 @@ class TransactionController extends Controller
             $transaction->type = 'I';
             $transaction->value = (int)$value;
             $transaction->description = $description;
-            $transaction->account_id = (int)$account_id;
-            $transaction->user_id = (int)$user_id;
+            $transaction->account_id = $account_id;
+            $transaction->user_id = $user_id;
             $transaction->preview = $preview;
             $transaction->usual = $usual;
             $transaction->save();  
@@ -554,18 +554,18 @@ class TransactionController extends Controller
                 return response()->json(['message' => 'Transação informada não é do tipo receita (R)'], 400);
             }
 
-            $transaction_date = $request->exists('transaction_date') ? $request->transaction_date : $ref_transaction->transaction_date;
-            $payment_date = $request->exists('payment_date') ? $request->payment_date : $ref_transaction->payment_date;
-            $value = $request->exists('value') ? $request->value : $ref_transaction->value;
-            $description = $request->exists('description') ? $request->description : $ref_transaction->description;
-            $category_id = $request->exists('category_id') ? $request->category_id : $ref_transaction->category_id;
-            $account_id = $request->exists('account_id') ? $request->account_id : $ref_transaction->account_id;
-            if ($request->exists('preview')) {
+            $transaction_date = $request->filled('transaction_date') ? $request->transaction_date : $ref_transaction->transaction_date;
+            $payment_date = $request->filled('payment_date') ? $request->payment_date : $ref_transaction->payment_date;
+            $value = $request->filled('value') ? $request->value : $ref_transaction->value;
+            $description = $request->filled('description') ? $request->description : $ref_transaction->description;
+            $category_id = $request->filled('category_id') ? $request->category_id : $ref_transaction->category_id;
+            $account_id = $request->filled('account_id') ? $request->account_id : $ref_transaction->account_id;
+            if ($request->filled('preview')) {
                 $preview = ($request->preview === true || $request->preview === "true") ? 1 : 0; //False (0) as default
             } else {
                 $preview = $ref_transaction->preview;
             }
-            if ($request->exists('usual')) {
+            if ($request->filled('usual')) {
                 $usual = ($request->usual === true || $request->usual === "true") ? 1 : 0; //False (0) as default
             } else {
                 $usual = $ref_transaction->usual;
@@ -604,8 +604,8 @@ class TransactionController extends Controller
                     $transactions[$i]->payment_date = $paymentDateStr;
                     $transactions[$i]->value = (int)$value;
                     $transactions[$i]->description = $description;
-                    $transactions[$i]->category_id = (int)$category_id;
-                    $transactions[$i]->account_id = (int)$account_id;
+                    $transactions[$i]->category_id = $category_id;
+                    $transactions[$i]->account_id = $account_id;
                     $transactions[$i]->preview = $preview;
                     $transactions[$i]->usual = $usual;
                     $transactions[$i]->save();  
@@ -621,8 +621,8 @@ class TransactionController extends Controller
                 $ref_transaction->payment_date = $paymentDateStr;
                 $ref_transaction->value = (int)$value;
                 $ref_transaction->description = $description;
-                $ref_transaction->category_id = (int)$category_id;
-                $ref_transaction->account_id = (int)$account_id;
+                $ref_transaction->category_id = $category_id;
+                $ref_transaction->account_id = $account_id;
                 $ref_transaction->preview = $preview;
                 $ref_transaction->usual = $usual;
                 $ref_transaction->save();  
@@ -664,17 +664,18 @@ class TransactionController extends Controller
                 return response()->json(['message' => 'Transação informada não é do tipo despesa (D)'], 400);
             }
 
-            $transaction_date = $request->exists('transaction_date') ? $request->transaction_date : $ref_transaction->transaction_date;
-            $payment_date = $request->exists('payment_date') ? $request->payment_date : $ref_transaction->payment_date;
-            $description = $request->exists('description') ? $request->description : $ref_transaction->description;
-            $category_id = $request->exists('category_id') ? $request->category_id : $ref_transaction->category_id;
-            $account_id = $request->exists('account_id') ? $request->account_id : $ref_transaction->account_id;
-            if ($request->exists('preview')) {
+            $transaction_date = $request->filled('transaction_date') ? $request->transaction_date : $ref_transaction->transaction_date;
+            $payment_date = $request->filled('payment_date') ? $request->payment_date : $ref_transaction->payment_date;
+            $description = $request->filled('description') ? $request->description : $ref_transaction->description;
+            $category_id = $request->filled('category_id') ? $request->category_id : $ref_transaction->category_id;
+            $account_id = $request->filled('account_id') ? $request->account_id : $ref_transaction->account_id;
+
+            if ($request->filled('preview')) {
                 $preview = ($request->preview === true || $request->preview === "true") ? 1 : 0; //False (0) as default
             } else {
                 $preview = $ref_transaction->preview;
             }
-            if ($request->exists('usual')) {
+            if ($request->filled('usual')) {
                 $usual = ($request->usual === true || $request->usual === "true") ? 1 : 0; //False (0) as default
             } else {
                 $usual = $ref_transaction->usual;
@@ -688,7 +689,7 @@ class TransactionController extends Controller
                 return response()->json(["message" => "A data de pagamento informada é inválida"], 400);
             }
 
-            if ($request->exists('value')){
+            if ($request->filled('value')){
             $value = $request->value;
             if (!$this->validateValue($value)){
                 return response()->json(["message" => "O valor da transação deve ser informado como número inteiro maior que zero"], 400);
@@ -717,10 +718,10 @@ class TransactionController extends Controller
                 while($i < $total_installments){
                     $transactions[$i]->transaction_date = $transactionDateStr;
                     $transactions[$i]->payment_date = $paymentDateStr;
-                    $transactions[$i]->value = (int)$value;
+                    $transactions[$i]->value = $value;
                     $transactions[$i]->description = $description;
-                    $transactions[$i]->category_id = (int)$category_id;
-                    $transactions[$i]->account_id = (int)$account_id;
+                    $transactions[$i]->category_id = $category_id;
+                    $transactions[$i]->account_id = $account_id;
                     $transactions[$i]->preview = $preview;
                     $transactions[$i]->usual = $usual;
                     $transactions[$i]->save();  
@@ -734,10 +735,10 @@ class TransactionController extends Controller
             } else {
                 $ref_transaction->transaction_date = $transactionDateStr;
                 $ref_transaction->payment_date = $paymentDateStr;
-                $ref_transaction->value = (int)$value;
+                $ref_transaction->value = $value;
                 $ref_transaction->description = $description;
-                $ref_transaction->category_id = (int)$category_id;
-                $ref_transaction->account_id = (int)$account_id;
+                $ref_transaction->category_id = $category_id;
+                $ref_transaction->account_id = $account_id;
                 $ref_transaction->preview = $preview;
                 $ref_transaction->usual = $usual;
                 $ref_transaction->save();  
@@ -785,13 +786,13 @@ class TransactionController extends Controller
                 $destination = $transactions[0];
             }
 
-            $transaction_date = $request->exists('transaction_date') ? $request->transaction_date : $ref_transaction->transaction_date;
-            $payment_date = $request->exists('transaction_date') ? $request->transaction_date : $ref_transaction->transaction_date;
-            $value = $request->exists('value') ? $request->value : $ref_transaction->value;
-            $description = $request->exists('description') ? $request->description : $ref_transaction->description;
-            $account_id = $request->exists('account_id') ? $request->account_id : $ref_transaction->account_id;
-            $destination_account_id = $request->exists('destination_account_id') ? $request->destination_account_id : $ref_transaction->destination_account_id;
-            if ($request->exists('usual')) {
+            $transaction_date = $request->filled('transaction_date') ? $request->transaction_date : $ref_transaction->transaction_date;
+            $payment_date = $request->filled('transaction_date') ? $request->transaction_date : $ref_transaction->transaction_date;
+            $value = $request->filled('value') ? $request->value : $ref_transaction->value;
+            $description = $request->filled('description') ? $request->description : $ref_transaction->description;
+            $account_id = $request->filled('account_id') ? $request->account_id : $ref_transaction->account_id;
+            $destination_account_id = $request->filled('destination_account_id') ? $request->destination_account_id : $ref_transaction->destination_account_id;
+            if ($request->filled('usual')) {
                 $usual = ($request->usual === true || $request->usual === "true") ? 1 : 0; //False (0) as default
             } else {
                 $usual = $ref_transaction->usual;
@@ -813,7 +814,7 @@ class TransactionController extends Controller
             $origin->payment_date = $dateStr;
             $origin->value = (int)$value * -1;
             $origin->description = $description;
-            $origin->account_id = (int)$account_id;
+            $origin->account_id = $account_id;
             $origin->usual = $usual;
             $origin->save();  
             array_push($editedTransactions, $origin);
@@ -822,7 +823,7 @@ class TransactionController extends Controller
             $destination->payment_date = $dateStr;
             $destination->value = (int)$value;
             $destination->description = $description;
-            $destination->account_id = (int)$destination_account_id;
+            $destination->account_id = $destination_account_id;
             $destination->usual = $usual;
             $destination->save();  
             array_push($editedTransactions, $destination);
