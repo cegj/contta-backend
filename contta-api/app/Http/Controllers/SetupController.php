@@ -55,6 +55,7 @@ class SetupController extends Controller
 
             Artisan::call('config:clear');
             Artisan::call('migrate:fresh --force');
+            Artisan::call('config:clear');
             
             if (tablesExists()){
                 return response()->json(["message" => "Banco de dados configurado com sucesso"], 200);
@@ -73,27 +74,27 @@ class SetupController extends Controller
 
         try {
 
-            $accountsIsEmpty = !Account::exists();
-            $categoriesIsEmpty = !Category::exists();
-            $groupsIsEmpty = !Group::exists();
-            $transactionsIsEmpty = !Transaction::exists();
-            $usersIsEmpty = !User::exists();
-            
-            $response = [
-                "accounts" => $accountsIsEmpty,
-                "categories" => $categoriesIsEmpty,
-                "groups" => $groupsIsEmpty,
-                "transactions" => $transactionsIsEmpty,
-                "users" => $usersIsEmpty,
-            ];
+            $response = [];
 
-            if (!$accountsIsEmpty || !$categoriesIsEmpty || !$groupsIsEmpty || !$transactionsIsEmpty || !$usersIsEmpty) {
-                $response["allEmpty"] = false;
+            function tablesExists(){
+                $checkResults = [
+                    Schema::hasTable('accounts'),
+                    Schema::hasTable('categories'),
+                    Schema::hasTable('groups'),
+                    Schema::hasTable('transactions'),
+                    Schema::hasTable('users')    
+                ];
+                foreach ($checkResults as $result){
+                    if ($result) return true;
+                }
+                return false;
+            };
+
+            if (tablesExists()){
+                return response()->json(["message" => "Verificação de tabelas concluída com sucesso", 'hasNoTables' => false], 201);
             } else {
-                $response["allEmpty"] = true;
+                return response()->json(["message" => "Verificação de tabelas concluída com sucesso", "hasNoTables" => true], 201);
             }
-
-            return response()->json(["message" => "Verificação de tabelas concluída com sucesso", "isEmpty" => $response], 201);
 
         } catch (\Throwable $th) {
             return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
