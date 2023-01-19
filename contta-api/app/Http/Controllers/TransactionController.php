@@ -50,7 +50,7 @@ class TransactionController extends Controller
          * account: integer
          * installments_key: string/number
          * typeofdate: string ('transaction_date', 'payment_date')
-         * includehiddenaccounts: true | false
+         * includehiddenaccounts: true | false (default)
          */
 
         try {
