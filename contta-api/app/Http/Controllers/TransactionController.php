@@ -50,6 +50,7 @@ class TransactionController extends Controller
          * account: integer
          * installments_key: string/number
          * typeofdate: string ('transaction_date', 'payment_date')
+         * hiddenaccounts: true | false
          */
 
         try {
@@ -114,10 +115,15 @@ class TransactionController extends Controller
             if ($category === "0"){$category = "null";};
             $type = $request->query('type');
             $installments_key = $request->query('installments_key');
+            $include_hidden_accounts = $request->query('include_hidden_accounts');
 
             //Building the query to db
             $transactions = Transaction::whereDate($typeOfDate, ">=", $from)
             ->whereDate($typeOfDate, "<=", $to)
+            ->with('account')
+            ->with('category')
+            ->when(($include_hidden_accounts != "true"), function($q){
+                return $q->whereRelation('account', 'show', '=', 1);})     
             ->when($account, function($q, $account){
                 if ($account === "null") {return $q->whereNull('account_id');}
                 else return $q->where('account_id', '=', $account);})    
@@ -130,11 +136,6 @@ class TransactionController extends Controller
                 return $q->where('installments_key', '=', $installments_key);})   
             ->orderBy($typeOfDate, 'asc')
             ->get();
-
-            foreach ($transactions as $transaction){
-                $transaction->category;
-                $transaction->account;
-            }
 
             return response()->json(["message" => "Transações obtidas de {$from} até {$to}", 'transactions' => $transactions], 200);
 
