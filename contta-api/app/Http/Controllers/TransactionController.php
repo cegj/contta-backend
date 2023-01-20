@@ -116,13 +116,16 @@ class TransactionController extends Controller
             if ($category === "0"){$category = "null";};
             $type = $request->query('type');
             $installments_key = $request->query('installments_key');
-            $includeHiddenAccounts = $request->query('includehiddenaccounts');
+            $includeHiddenAccounts = filter_var($request->includehiddenaccounts, FILTER_VALIDATE_BOOLEAN);
+            $preview = filter_var($request->preview, FILTER_VALIDATE_BOOLEAN);
+            $usual =  filter_var($request->usual, FILTER_VALIDATE_BOOLEAN);
+            $budget_control = filter_var($request->budget_control, FILTER_VALIDATE_BOOLEAN);
 
             //Building the query to db
             $transactions = Transaction::whereBetween($typeOfDate, [$from, $to])
             ->with('account')
             ->with('category')
-            ->when(($includeHiddenAccounts != "true"), function($q){
+            ->when((!$includeHiddenAccounts), function($q){
                 return $q->where(function ($q) {
                     $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
                 });})     
@@ -218,9 +221,9 @@ class TransactionController extends Controller
             $description = $request->description;
             $category_id = $request->category_id;
             $account_id = $request->account_id;
-            $preview = ($request->preview === true || $request->preview === "true") ? 1 : 0; //False (0) as default
-            $usual =  ($request->usual === true || $request->usual === "true") ? 1 : 0; //False (0) as default
-            $budget_control =  ($request->budget_control === true || $request->budget_control === "true") ? 1 : 0; //False (0) as default
+            $preview = filter_var($request->preview, FILTER_VALIDATE_BOOLEAN);
+            $usual =  filter_var($request->usual, FILTER_VALIDATE_BOOLEAN);
+            $budget_control = filter_var($request->budget_control, FILTER_VALIDATE_BOOLEAN);
             $total_installments = (int)$request->total_installments > 0 ? (int)$request->total_installments : 1; //1 (one) as default
 
             if ($budget_control){
@@ -373,9 +376,9 @@ class TransactionController extends Controller
             $description = $request->description;
             $category_id = $request->category_id;
             $account_id = $request->account_id;
-            $preview = ($request->preview === true || $request->preview === "true") ? 1 : 0; //False (0) as default
-            $usual =  ($request->usual === true || $request->usual === "true") ? 1 : 0; //False (0) as default
-            $budget_control =  ($request->budget_control === true || $request->budget_control === "true") ? 1 : 0; //False (0) as default
+            $preview = filter_var($request->preview, FILTER_VALIDATE_BOOLEAN);
+            $usual =  filter_var($request->usual, FILTER_VALIDATE_BOOLEAN);
+            $budget_control = filter_var($request->budget_control, FILTER_VALIDATE_BOOLEAN);
             $total_installments = (int)$request->total_installments > 0 ? (int)$request->total_installments : 1; //1 (one) as default
 
             if ($budget_control){
@@ -523,7 +526,7 @@ class TransactionController extends Controller
             $description = $request->description;
             $account_id = $request->account_id;
             $destination_account_id = $request->destination_account_id;
-            $usual =  ($request->usual === true || $request->usual === "true") ? 1 : 0; //False (0) as default
+            $usual =  filter_var($request->usual, FILTER_VALIDATE_BOOLEAN);
     
             if (!$this->validateDate($transaction_date)){
                 return response()->json(["message" => "A data informada é inválida"], 400);
@@ -686,19 +689,19 @@ class TransactionController extends Controller
             $category_id = $request->filled('category_id') ? $request->category_id : $ref_transaction->category_id;
             $account_id = $request->filled('account_id') ? $request->account_id : $ref_transaction->account_id;
             if ($request->filled('preview')) {
-                $preview = ($request->preview === true || $request->preview === "true") ? 1 : 0; //False (0) as default
-            } else {
+                $preview = filter_var($request->preview, FILTER_VALIDATE_BOOLEAN);
+                } else {
                 $preview = $ref_transaction->preview;
             }
             if ($request->filled('usual')) {
-                $usual = ($request->usual === true || $request->usual === "true") ? 1 : 0; //False (0) as default
-            } else {
+                $usual =  filter_var($request->usual, FILTER_VALIDATE_BOOLEAN);
+                } else {
                 $usual = $ref_transaction->usual;
             }
 
             if ($request->filled('budget_control')) {
-                $budget_control = ($request->budget_control === true || $request->budget_control === "true") ? 1 : 0; //False (0) as default
-            } else {
+                $budget_control = filter_var($request->budget_control, FILTER_VALIDATE_BOOLEAN);
+                } else {
                 $budget_control = $ref_transaction->budget_control;
             }
 
@@ -896,19 +899,19 @@ class TransactionController extends Controller
             $account_id = $request->filled('account_id') ? $request->account_id : $ref_transaction->account_id;
 
             if ($request->filled('preview')) {
-                $preview = ($request->preview === true || $request->preview === "true") ? 1 : 0; //False (0) as default
-            } else {
+                $preview = filter_var($request->preview, FILTER_VALIDATE_BOOLEAN);
+                } else {
                 $preview = $ref_transaction->preview;
             }
             if ($request->filled('usual')) {
-                $usual = ($request->usual === true || $request->usual === "true") ? 1 : 0; //False (0) as default
-            } else {
+                $usual =  filter_var($request->usual, FILTER_VALIDATE_BOOLEAN);
+                } else {
                 $usual = $ref_transaction->usual;
             }
 
             if ($request->filled('budget_control')) {
-                $budget_control = ($request->budget_control === true || $request->budget_control === "true") ? 1 : 0; //False (0) as default
-            } else {
+                $budget_control = filter_var($request->budget_control, FILTER_VALIDATE_BOOLEAN);
+                } else {
                 $budget_control = $ref_transaction->budget_control;
             }
 
@@ -1117,8 +1120,8 @@ class TransactionController extends Controller
             $account_id = $request->filled('account_id') ? $request->account_id : $ref_transaction->account_id;
             $destination_account_id = $request->filled('destination_account_id') ? $request->destination_account_id : $ref_transaction->destination_account_id;
             if ($request->filled('usual')) {
-                $usual = ($request->usual === true || $request->usual === "true") ? 1 : 0; //False (0) as default
-            } else {
+                $usual =  filter_var($request->usual, FILTER_VALIDATE_BOOLEAN);
+                } else {
                 $usual = $ref_transaction->usual;
             }
     
