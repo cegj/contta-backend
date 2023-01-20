@@ -62,7 +62,7 @@ class BalanceController extends Controller
             if ($account === "0"){$account = "null";};
             $category = $request->query('category');
             if ($category === "0"){$category = "null";};
-            $includeHiddenAccounts = $request->query('includehiddenaccounts');
+            $includeHiddenAccounts = filter_var($request->includehiddenaccounts, FILTER_VALIDATE_BOOLEAN);
 
             if($dateQuery){
                 $date = explode('-', $dateQuery);
@@ -384,14 +384,14 @@ class BalanceController extends Controller
             $typeOfDate = $request->query('typeofdate');
             if ($typeOfDate){
                 if ($typeOfDate != 'transaction_date'){
-                    if (!$typeOfDate != 'payment_date'){
+                    if ($typeOfDate != 'payment_date'){
                         return response()->json(["message" => "O tipo de data ('typeofdate') é inválido, informe 'transaction_date' ou 'payment_date'"], 400);  
                     }}
             } else {
                 return response()->json(["message" => "O tipo de data ('typeofdate') deve ser informado"], 400);
             }
 
-            $includeHiddenAccounts = $request->query('includehiddenaccounts');
+            $includeHiddenAccounts = filter_var($request->includehiddenaccounts, FILTER_VALIDATE_BOOLEAN);
 
             $categories = Category::all();
 
