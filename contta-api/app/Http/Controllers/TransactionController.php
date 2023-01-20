@@ -119,12 +119,13 @@ class TransactionController extends Controller
             $includeHiddenAccounts = $request->query('includehiddenaccounts');
 
             //Building the query to db
-            $transactions = Transaction::whereDate($typeOfDate, ">=", $from)
-            ->whereDate($typeOfDate, "<=", $to)
+            $transactions = Transaction::whereBetween($typeOfDate, [$from, $to])
             ->with('account')
             ->with('category')
             ->when(($includeHiddenAccounts != "true"), function($q){
-                return $q->whereRelation('account', 'show', '=', 1);})     
+                return $q->where(function ($q) {
+                    $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                });})     
             ->when($account, function($q, $account){
                 if ($account === "null") {return $q->whereNull('account_id');}
                 else return $q->where('account_id', '=', $account);})    
