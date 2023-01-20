@@ -615,7 +615,8 @@ class TransactionController extends Controller
             }
 
             //Default values
-            $date = date('Y-m-d');
+            $date = new Datetime;
+            $date = $date->modify('first day of this month')->format('Y-m-d');
             $description = "Saldo inicial";
             $preview = 0;
             $usual = 0;
