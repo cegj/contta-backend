@@ -823,7 +823,7 @@ class TransactionController extends Controller
                         if (count($budgetControlTransaction) > 0){
                             $budgetControlTransaction = $budgetControlTransaction[0];
                             $result = ($budgetControlTransaction->value + $ref_transaction->value) - $value;
-                            if ($result > 0) {
+                            if ($result < 0) {
                                 $exceedValue = number_format(floatval($result)/100, 2, ",", ".");
                                 throw new \Exception("O valor desta transação ultrapassa o limite do controle do orçamento de {$budgetControlTransaction->transaction_date} em R$ {$exceedValue}", 400); 
                             } else {
