@@ -81,7 +81,7 @@ class BalanceController extends Controller
                 //Date balance
                 $incomesOfDate = Transaction::select("value", $typeOfDate)
                 ->where($typeOfDate, '=', $dateQuery)
-                ->where('budget_control', 1)
+                ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
                     return $q->whereRelation('account', 'show', '=', 1);})         
                 ->where('type', "=", 'R')
@@ -98,7 +98,7 @@ class BalanceController extends Controller
     
                 $expensesOfDate = Transaction::select("value", $typeOfDate)
                 ->where($typeOfDate, "=", $dateQuery)
-                ->where('budget_control', 1)
+                ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
                     return $q->whereRelation('account', 'show', '=', 1);})         
                 ->where('type', "=", 'D')
@@ -115,7 +115,7 @@ class BalanceController extends Controller
     
                 $balanceOfDate = Transaction::select("value", $typeOfDate)
                 ->where($typeOfDate, "=", $dateQuery)
-                ->where('budget_control', 1)
+                ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
                     return $q->whereRelation('account', 'show', '=', 1);})         
                 ->when(!$includeExpected, function($q){
@@ -132,7 +132,7 @@ class BalanceController extends Controller
                 //Month balance until date
                 $incomesOfMonth = Transaction::select("value", $typeOfDate)
                 ->whereBetween($typeOfDate, [$firstDateOfMonth, $dateQuery])
-                ->where('budget_control', 1)
+                ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
                     return $q->whereRelation('account', 'show', '=', 1);})         
                 ->where('type', "=", 'R')
@@ -149,7 +149,7 @@ class BalanceController extends Controller
     
                 $expensesOfMonth = Transaction::select("value", $typeOfDate)
                 ->whereBetween($typeOfDate, [$firstDateOfMonth, $dateQuery])
-                ->where('budget_control', 1)
+                ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
                     return $q->whereRelation('account', 'show', '=', 1);})         
                 ->where('type', "=", 'D')
@@ -166,7 +166,7 @@ class BalanceController extends Controller
     
                 $balanceOfMonth = Transaction::select("value", $typeOfDate)
                 ->whereBetween($typeOfDate, [$firstDateOfMonth, $dateQuery])
-                ->where('budget_control', 1)
+                ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
                     return $q->whereRelation('account', 'show', '=', 1);})         
                 ->when(!$includeExpected, function($q){
@@ -183,7 +183,7 @@ class BalanceController extends Controller
                 //General balance until date
                 $incomesOfAll = Transaction::select("value", $typeOfDate)
                 ->where($typeOfDate, "<=", $dateQuery)
-                ->where('budget_control', 1)
+                ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
                     return $q->whereRelation('account', 'show', '=', 1);})         
                 ->where('type', "=", 'R')
@@ -200,7 +200,7 @@ class BalanceController extends Controller
     
                 $expensesOfAll = Transaction::select("value", $typeOfDate)
                 ->where($typeOfDate, "<=", $dateQuery)
-                ->where('budget_control', 1)
+                ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
                     return $q->whereRelation('account', 'show', '=', 1);})         
                 ->where('type', "=", 'D')
@@ -217,7 +217,7 @@ class BalanceController extends Controller
     
                 $balanceOfAll = Transaction::select("value", $typeOfDate)
                 ->where($typeOfDate, "<=", $dateQuery)
-                ->where('budget_control', 1)
+                ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
                     return $q->whereRelation('account', 'show', '=', 1);})         
                 ->when(!$includeExpected, function($q){
@@ -265,7 +265,7 @@ class BalanceController extends Controller
 
                 $incomesOfRange = Transaction::select("value", $typeOfDate)
                 ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
-                ->where('budget_control', 1)
+                ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
                     return $q->whereRelation('account', 'show', '=', 1);})         
                 ->where('type', "=", 'R')
@@ -282,7 +282,7 @@ class BalanceController extends Controller
     
                 $expensesOfRange = Transaction::select("value", $typeOfDate)
                 ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
-                ->where('budget_control', 1)
+                ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
                     return $q->whereRelation('account', 'show', '=', 1);})         
                 ->where('type', "=", 'D')
@@ -299,7 +299,7 @@ class BalanceController extends Controller
     
                 $balanceOfRange = Transaction::select("value", $typeOfDate)
                 ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
-                ->where('budget_control', 1)
+                ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
                     return $q->whereRelation('account', 'show', '=', 1);})         
                 ->when(!$includeExpected, function($q){
