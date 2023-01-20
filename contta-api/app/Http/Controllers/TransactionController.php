@@ -206,6 +206,7 @@ class TransactionController extends Controller
          * account_id: integer
          * preview: string/boolean
          * usual: string/boolean
+         * budget_control: string/boolean
          * total_installments: integer
          */
 
@@ -218,7 +219,13 @@ class TransactionController extends Controller
             $account_id = $request->account_id;
             $preview = ($request->preview === true || $request->preview === "true") ? 1 : 0; //False (0) as default
             $usual =  ($request->usual === true || $request->usual === "true") ? 1 : 0; //False (0) as default
+            $budget_control =  ($request->budget_control === true || $request->budget_control === "true") ? 1 : 0; //False (0) as default
             $total_installments = (int)$request->total_installments > 0 ? (int)$request->total_installments : 1; //1 (one) as default
+
+            if ($budget_control){
+                $preview = 1;
+                $account_id = null;
+            } 
     
             if (!$this->validateDate($transaction_date)){
                 return response()->json(["message" => "A data informada é inválida"], 400);
@@ -240,7 +247,7 @@ class TransactionController extends Controller
                 return response()->json(["message" => "É necessário informar uma categoria para a transação"], 400);
             }  
             
-            if (!$account_id){
+            if (!$budget_control && !$account_id){
                 return response()->json(["message" => "É necessário informar uma conta para a transação"], 400);
             } 
     
@@ -257,30 +264,84 @@ class TransactionController extends Controller
             $payment_date = new DateTime($request->payment_date);
             $paymentDateStr = $payment_date->format('Y-m-d');
             $storedTransactions = [];
+
+            DB::transaction(function ()
+            use(
+                &$installment,
+                &$total_installments,
+                &$transaction_date,
+                &$payment_date,
+                &$transactionDateStr,
+                &$paymentDateStr,
+                &$value,
+                &$description,
+                &$category_id,
+                &$account_id,
+                &$user_id,
+                &$preview,
+                &$budget_control,
+                &$installments_key,
+                &$storedTransactions,
+                &$usual
+            ) {
+                while($installment <= $total_installments){
+                    $baseDate = clone $transaction_date;
+                    $firstDayOfMonth = $baseDate->modify('first day of this month')->format('Y-m-d');
+                    $lastDayOfMonth = $baseDate->modify('last day of this month')->format('Y-m-d');
+    
+                    if ($budget_control){
+                        $budgetControlTransaction = Transaction::whereBetween('transaction_date', [$firstDayOfMonth, $lastDayOfMonth])
+                        ->where('budget_control', 1)
+                        ->where('type', 'R')
+                        ->get(); 
+                        if (count($budgetControlTransaction) > 0){
+                            throw new \Exception("Já existe uma transação de controle de orçamento do tipo Receita no mês da transação de {$transactionDateStr}", 400); 
+                        }
+                    } 
+    
+                    if (!$budget_control){
+                        $budgetControlTransaction = Transaction::whereBetween('transaction_date', [$firstDayOfMonth, $lastDayOfMonth])
+                        ->where('budget_control', 1)
+                        ->where('type', 'R')
+                        ->get(); 
+        
+                        if (count($budgetControlTransaction) > 0){
+                            $budgetControlTransaction = $budgetControlTransaction[0];
+                            $result = ($budgetControlTransaction->value - (int)$value);
+                            if ($result < 0) {
+                                $exceedValue = number_format(floatval($result)/100, 2, ",", ".");
+                                throw new \Exception("O valor desta transação ultrapassa o limite do controle do orçamento de {$budgetControlTransaction->transaction_date} em R$ {$exceedValue}", 400); 
+                            } else {
+                                $budgetControlTransaction->value = $result;
+                                $budgetControlTransaction->save();    
+                            }
+                        }
+                    }
+
+                    $transaction = new Transaction;
+                    $transaction->transaction_date = $transactionDateStr;
+                    $transaction->payment_date = $paymentDateStr;
+                    $transaction->type = 'R';
+                    $transaction->value = (int)$value;
+                    $transaction->description = $description;
+                    $transaction->category_id = $category_id;
+                    $transaction->account_id = $account_id;
+                    $transaction->user_id = $user_id;
+                    $transaction->preview = $preview;
+                    $transaction->usual = $usual;
+                    $transaction->budget_control = $budget_control;
+                    $transaction->installments_key = $installments_key;
+                    $transaction->installment = $installment;
+                    $transaction->save();  
+                    array_push($storedTransactions, $transaction);
+        
+                    //Increment values for next stallment
+                    $transactionDateStr = $transaction_date->modify("+1 month")->format('Y-m-d');
+                    $paymentDateStr = $payment_date->modify("+1 month")->format('Y-m-d');
+                    $installment++;
+                }
+            });
             
-            while($installment <= $total_installments){
-                $transaction = new Transaction;
-                $transaction->transaction_date = $transactionDateStr;
-                $transaction->payment_date = $paymentDateStr;
-                $transaction->type = 'R';
-                $transaction->value = (int)$value;
-                $transaction->description = $description;
-                $transaction->category_id = $category_id;
-                $transaction->account_id = $account_id;
-                $transaction->user_id = $user_id;
-                $transaction->preview = $preview;
-                $transaction->usual = $usual;
-                $transaction->installments_key = $installments_key;
-                $transaction->installment = $installment;
-                $transaction->save();  
-                array_push($storedTransactions, $transaction);
-    
-                //Increment values for next stallment
-                $transactionDateStr = $transaction_date->modify("+1 month")->format('Y-m-d');
-                $paymentDateStr = $payment_date->modify("+1 month")->format('Y-m-d');
-                $installment++;
-            }
-    
             return response()->json(["message" => "Transação registrada com sucesso", "transactions" => $storedTransactions], 200);
         
         } catch (\Throwable $th) {
@@ -300,6 +361,7 @@ class TransactionController extends Controller
          * account_id: integer
          * preview: string/boolean
          * usual: string/boolean
+         * budget_control: string/boolean
          * total_installments: integer
          */
 
@@ -385,15 +447,17 @@ class TransactionController extends Controller
                     if ($budget_control){
                         $budgetControlTransaction = Transaction::whereBetween('transaction_date', [$firstDayOfMonth, $lastDayOfMonth])
                         ->where('budget_control', 1)
+                        ->where('type', 'D')
                         ->get(); 
                         if (count($budgetControlTransaction) > 0){
-                            throw new \Exception("Já existe uma transação de controle de orçamento no mês da transação de {$transactionDateStr}", 400); 
+                            throw new \Exception("Já existe uma transação de controle de orçamento do tipo Despesa no mês da transação de {$transactionDateStr}", 400); 
                         }
                     } 
     
                     if (!$budget_control){
                         $budgetControlTransaction = Transaction::whereBetween('transaction_date', [$firstDayOfMonth, $lastDayOfMonth])
                         ->where('budget_control', 1)
+                        ->where('type', 'D')
                         ->get(); 
         
                         if (count($budgetControlTransaction) > 0){
