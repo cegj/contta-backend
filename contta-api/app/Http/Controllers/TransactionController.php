@@ -701,7 +701,12 @@ class TransactionController extends Controller
             } else {
                 $budget_control = $ref_transaction->budget_control;
             }
-    
+
+            if ($budget_control){
+                $preview = 1;
+                $account_id = null;
+            } 
+
             if (!$this->validateDate($transaction_date)){
                 return response()->json(["message" => "A data informada é inválida"], 400);
             }
@@ -906,6 +911,11 @@ class TransactionController extends Controller
             } else {
                 $budget_control = $ref_transaction->budget_control;
             }
+
+            if ($budget_control){
+                $preview = 1;
+                $account_id = null;
+            } 
 
             if (!$this->validateDate($transaction_date)){
                 return response()->json(["message" => "A data informada é inválida"], 400);
