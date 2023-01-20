@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\DB;
 use App\Models\Transaction;
 use DateTime;
 
@@ -311,6 +312,7 @@ class TransactionController extends Controller
             $account_id = $request->account_id;
             $preview = ($request->preview === true || $request->preview === "true") ? 1 : 0; //False (0) as default
             $usual =  ($request->usual === true || $request->usual === "true") ? 1 : 0; //False (0) as default
+            $budget_control =  ($request->budget_control === true || $request->budget_control === "true") ? 1 : 0; //False (0) as default
             $total_installments = (int)$request->total_installments > 0 ? (int)$request->total_installments : 1; //1 (one) as default
     
             if (!$this->validateDate($transaction_date)){
@@ -351,33 +353,82 @@ class TransactionController extends Controller
             $paymentDateStr = $payment_date->format('Y-m-d');
             $storedTransactions = [];
             
-            while($installment <= $total_installments){
-                $transaction = new Transaction;
-                $transaction->transaction_date = $transactionDateStr;
-                $transaction->payment_date = $paymentDateStr;
-                $transaction->type = 'D';
-                $transaction->value = (int)$value * -1;
-                $transaction->description = $description;
-                $transaction->category_id = $category_id;
-                $transaction->account_id = $account_id;
-                $transaction->user_id = $user_id;
-                $transaction->preview = $preview;
-                $transaction->usual = $usual;
-                $transaction->installments_key = $installments_key;
-                $transaction->installment = $installment;
-                $transaction->save();  
-                array_push($storedTransactions, $transaction);
+            DB::transaction(function ()
+                use($installment,
+                &$total_installments,
+                &$transaction_date,
+                &$payment_date,
+                &$transactionDateStr,
+                &$paymentDateStr,
+                &$value,
+                &$description,
+                &$category_id,
+                &$account_id,
+                &$user_id,
+                &$preview,
+                &$budget_control,
+                &$installments_key,
+                &$storedTransactions,
+                &$usual)
+                {
+                while($installment <= $total_installments){
+                    $firstDayOfMonth = $transaction_date->modify('first day of this month')->format('Y-m-d');
+                    $lastDayOfMonth = $transaction_date->modify('last day of this month')->format('Y-m-d');
     
-                //Increment values for next stallment
-                $transactionDateStr = $transaction_date->modify("+1 month")->format('Y-m-d');
-                $paymentDateStr = $payment_date->modify("+1 month")->format('Y-m-d');
-                $installment++;
-            }
+                    if ($budget_control){
+                        $budgetControlTransaction = Transaction::whereBetween('transaction_date', [$firstDayOfMonth, $lastDayOfMonth])
+                        ->where('budget_control', 1)
+                        ->get(); 
+                        if (count($budgetControlTransaction) > 0){
+                            throw new \Exception("Já existe uma transação de controle de orçamento no mês da transação de {$transactionDateStr}", 400); 
+                        }
+                    } 
     
+                    if (!$budget_control){
+                        $budgetControlTransaction = Transaction::whereBetween('transaction_date', [$firstDayOfMonth, $lastDayOfMonth])
+                        ->where('budget_control', 1)
+                        ->get(); 
+        
+                        if (count($budgetControlTransaction) > 0){
+                            $budgetControlTransaction = $budgetControlTransaction[0];
+                            if (($budgetControlTransaction->value - ((int)$value * -1)) > 0) {
+                                $exceedValue = number_format(floatval($budgetControlTransaction->value - ((int)$value * -1))/100, 2, ",", ".");
+                                throw new \Exception("O valor desta transação ultrapassa o limite do controle do orçamento de {$budgetControlTransaction->transaction_date} em R$ {$exceedValue}", 400); 
+                            } else {
+                                $budgetControlTransaction->value = ($budgetControlTransaction->value - ((int)$value * -1));
+                                $budgetControlTransaction->save();    
+                            }
+                        }
+                    }
+    
+                    $transaction = new Transaction;
+                    $transaction->transaction_date = $transactionDateStr;
+                    $transaction->payment_date = $paymentDateStr;
+                    $transaction->type = 'D';
+                    $transaction->value = (int)$value * -1;
+                    $transaction->description = $description;
+                    $transaction->category_id = $category_id;
+                    $transaction->account_id = $account_id;
+                    $transaction->user_id = $user_id;
+                    $transaction->preview = $preview;
+                    $transaction->usual = $usual;
+                    $transaction->budget_control = $budget_control;
+                    $transaction->installments_key = $installments_key;
+                    $transaction->installment = $installment;
+                    $transaction->save();  
+                    array_push($storedTransactions, $transaction);
+        
+                    //Increment values for next stallment
+                    $transactionDateStr = $transaction_date->modify("+1 month")->format('Y-m-d');
+                    $paymentDateStr = $payment_date->modify("+1 month")->format('Y-m-d');
+                    $installment++;
+                }
+            });
+
             return response()->json(["message" => "Transação registrada com sucesso", "transactions" => $storedTransactions], 200);
         
         } catch (\Throwable $th) {
-            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
+            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], $th->getCode() ? $th->getCode() : 500);
         }
     }
 

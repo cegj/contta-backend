@@ -32,6 +32,7 @@ return new class extends Migration
             $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
             $table->boolean('preview')->default(false);
             $table->boolean('usual')->default(false);
+            $table->boolean('budget_control')->default(false);
             $table->string('transfer_key')->nullable();
             $table->string('installments_key')->nullable();
             $table->integer('installment')->nullable();
