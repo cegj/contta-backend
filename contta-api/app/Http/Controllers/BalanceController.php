@@ -83,7 +83,9 @@ class BalanceController extends Controller
                 ->where($typeOfDate, '=', $dateQuery)
                 ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
-                    return $q->whereRelation('account', 'show', '=', 1);})         
+                    return $q->where(function ($q) {
+                        $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                    });})     
                 ->where('type', "=", 'R')
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})
@@ -100,7 +102,9 @@ class BalanceController extends Controller
                 ->where($typeOfDate, "=", $dateQuery)
                 ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
-                    return $q->whereRelation('account', 'show', '=', 1);})         
+                    return $q->where(function ($q) {
+                        $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                    });})     
                 ->where('type', "=", 'D')
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})
@@ -117,7 +121,9 @@ class BalanceController extends Controller
                 ->where($typeOfDate, "=", $dateQuery)
                 ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
-                    return $q->whereRelation('account', 'show', '=', 1);})         
+                    return $q->where(function ($q) {
+                        $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                    });})     
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
@@ -134,7 +140,9 @@ class BalanceController extends Controller
                 ->whereBetween($typeOfDate, [$firstDateOfMonth, $dateQuery])
                 ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
-                    return $q->whereRelation('account', 'show', '=', 1);})         
+                    return $q->where(function ($q) {
+                        $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                    });})     
                 ->where('type', "=", 'R')
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})            
@@ -151,7 +159,9 @@ class BalanceController extends Controller
                 ->whereBetween($typeOfDate, [$firstDateOfMonth, $dateQuery])
                 ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
-                    return $q->whereRelation('account', 'show', '=', 1);})         
+                    return $q->where(function ($q) {
+                        $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                    });})     
                 ->where('type', "=", 'D')
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})
@@ -168,7 +178,9 @@ class BalanceController extends Controller
                 ->whereBetween($typeOfDate, [$firstDateOfMonth, $dateQuery])
                 ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
-                    return $q->whereRelation('account', 'show', '=', 1);})         
+                    return $q->where(function ($q) {
+                        $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                    });})     
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
@@ -185,7 +197,9 @@ class BalanceController extends Controller
                 ->where($typeOfDate, "<=", $dateQuery)
                 ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
-                    return $q->whereRelation('account', 'show', '=', 1);})         
+                    return $q->where(function ($q) {
+                        $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                    });})     
                 ->where('type', "=", 'R')
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})
@@ -202,7 +216,9 @@ class BalanceController extends Controller
                 ->where($typeOfDate, "<=", $dateQuery)
                 ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
-                    return $q->whereRelation('account', 'show', '=', 1);})         
+                    return $q->where(function ($q) {
+                        $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                    });})     
                 ->where('type', "=", 'D')
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})
@@ -219,7 +235,9 @@ class BalanceController extends Controller
                 ->where($typeOfDate, "<=", $dateQuery)
                 ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
-                    return $q->whereRelation('account', 'show', '=', 1);})         
+                    return $q->where(function ($q) {
+                        $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                    });})     
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
@@ -267,7 +285,9 @@ class BalanceController extends Controller
                 ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
                 ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
-                    return $q->whereRelation('account', 'show', '=', 1);})         
+                    return $q->where(function ($q) {
+                        $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                    });})     
                 ->where('type', "=", 'R')
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})
@@ -284,7 +304,9 @@ class BalanceController extends Controller
                 ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
                 ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
-                    return $q->whereRelation('account', 'show', '=', 1);})         
+                    return $q->where(function ($q) {
+                        $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                    });})     
                 ->where('type', "=", 'D')
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})
@@ -301,7 +323,9 @@ class BalanceController extends Controller
                 ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
                 ->where('budget_control', 0)
                 ->when(($includeHiddenAccounts != "true"), function($q){
-                    return $q->whereRelation('account', 'show', '=', 1);})         
+                    return $q->where(function ($q) {
+                        $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                    });})     
                 ->when(!$includeExpected, function($q){
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
@@ -380,7 +404,9 @@ class BalanceController extends Controller
                 $balanceExpected = Transaction::select("value", $typeOfDate)
                 ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
                 ->when(($includeHiddenAccounts != "true"), function($q){
-                    return $q->whereRelation('account', 'show', '=', 1);})         
+                    return $q->where(function ($q) {
+                        $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                    });})     
                 ->where('category_id', '=', $category->id)
                 ->get()
                 ->sum('value');
@@ -388,7 +414,9 @@ class BalanceController extends Controller
                 $balanceMade = Transaction::select("value", $typeOfDate)
                 ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
                 ->when(($includeHiddenAccounts != "true"), function($q){
-                    return $q->whereRelation('account', 'show', '=', 1);})         
+                    return $q->where(function ($q) {
+                        $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                    });})     
                 ->where('preview', "=", '0')
                 ->where('category_id', '=', $category->id)
                 ->get()
@@ -403,7 +431,9 @@ class BalanceController extends Controller
             $balanceNullCatExpected = Transaction::select("value", $typeOfDate)
             ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
             ->when(($includeHiddenAccounts != "true"), function($q){
-                return $q->whereRelation('account', 'show', '=', 1);})         
+                return $q->where(function ($q) {
+                    $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                });})     
             ->whereNull('category_id')
             ->get()
             ->sum('value');
@@ -411,7 +441,9 @@ class BalanceController extends Controller
             $balanceNullCatMade = Transaction::select("value", $typeOfDate)
             ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
             ->when(($includeHiddenAccounts != "true"), function($q){
-                return $q->whereRelation('account', 'show', '=', 1);})         
+                return $q->where(function ($q) {
+                    $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                });})     
             ->where('preview', "=", '0')
             ->whereNull('category_id')
             ->get()
@@ -424,14 +456,18 @@ class BalanceController extends Controller
             $balanceMonthExpected = Transaction::select("value", $typeOfDate)
             ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
             ->when(($includeHiddenAccounts != "true"), function($q){
-                return $q->whereRelation('account', 'show', '=', 1);})         
+                return $q->where(function ($q) {
+                    $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                });})     
             ->get()
             ->sum('value');
 
             $balanceMonthMade = Transaction::select("value", $typeOfDate)
             ->whereBetween($typeOfDate, [$fromQuery, $toQuery])
             ->when(($includeHiddenAccounts != "true"), function($q){
-                return $q->whereRelation('account', 'show', '=', 1);})         
+                return $q->where(function ($q) {
+                    $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                });})     
             ->where('preview', "=", '0')
             ->get()
             ->sum('value');
@@ -444,14 +480,18 @@ class BalanceController extends Controller
             $balanceAccumulatedExpected = Transaction::select("value", $typeOfDate)
             ->where($typeOfDate, "<=", $toQuery)
             ->when(($includeHiddenAccounts != "true"), function($q){
-                return $q->whereRelation('account', 'show', '=', 1);})         
+                return $q->where(function ($q) {
+                    $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                });})     
             ->get()
             ->sum('value');
 
             $balanceAccumulatedMade = Transaction::select("value", $typeOfDate)
             ->where($typeOfDate, "<=", $toQuery)
             ->when(($includeHiddenAccounts != "true"), function($q){
-                return $q->whereRelation('account', 'show', '=', 1);})         
+                return $q->where(function ($q) {
+                    $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                });})     
             ->where('preview', "=", '0')
             ->get()
             ->sum('value');
