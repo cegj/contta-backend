@@ -52,6 +52,7 @@ class TransactionController extends Controller
          * installments_key: string/number
          * typeofdate: string ('transaction_date', 'payment_date')
          * includehiddenaccounts: true | false (default)
+         * hideexpected: true | false (default)
          */
 
         try {
@@ -117,6 +118,7 @@ class TransactionController extends Controller
             $type = $request->query('type');
             $installments_key = $request->query('installments_key');
             $includeHiddenAccounts = filter_var($request->includehiddenaccounts, FILTER_VALIDATE_BOOLEAN);
+            $hideExpected = filter_var($request->hideexpected, FILTER_VALIDATE_BOOLEAN);
             $preview = filter_var($request->preview, FILTER_VALIDATE_BOOLEAN);
             $usual =  filter_var($request->usual, FILTER_VALIDATE_BOOLEAN);
             $budget_control = filter_var($request->budget_control, FILTER_VALIDATE_BOOLEAN);
@@ -128,17 +130,19 @@ class TransactionController extends Controller
             ->when((!$includeHiddenAccounts), function($q){
                 return $q->where(function ($q) {
                     $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
-                });})     
+                });})
             ->when($account, function($q, $account){
                 if ($account === "null") {return $q->whereNull('account_id');}
-                else return $q->where('account_id', '=', $account);})    
+                else return $q->where('account_id', $account);})    
             ->when($category, function($q, $category){
                 if ($category === "null") {return $q->whereNull('category_id');}
-                else return $q->where('category_id', '=', $category);})    
+                else return $q->where('category_id', $category);})    
             ->when($type, function($q, $type){
-                return $q->where('type', '=', $type);})     
+                return $q->where('type', $type);})     
             ->when($installments_key, function($q, $installments_key){
-                return $q->where('installments_key', '=', $installments_key);})   
+                return $q->where('installments_key', $installments_key);})
+            ->when($hideExpected, function($q){
+                return $q->where('preview', 0);})                        
             ->orderBy($typeOfDate, 'asc')
             ->get();
 
