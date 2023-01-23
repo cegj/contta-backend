@@ -300,6 +300,7 @@ class TransactionController extends Controller
                     if ($budget_control){
                         $budgetControlTransaction = Transaction::whereBetween('transaction_date', [$firstDayOfMonth, $lastDayOfMonth])
                         ->where('budget_control', 1)
+                        ->where('category_id', $category_id)
                         ->where('type', 'R')
                         ->get(); 
                         if (count($budgetControlTransaction) > 0){
@@ -310,6 +311,7 @@ class TransactionController extends Controller
                     if (!$budget_control){
                         $budgetControlTransaction = Transaction::whereBetween('transaction_date', [$firstDayOfMonth, $lastDayOfMonth])
                         ->where('budget_control', 1)
+                        ->where('category_id', $category_id)
                         ->where('type', 'R')
                         ->get(); 
         
