@@ -293,7 +293,7 @@ class TransactionController extends Controller
                 &$usual
             ) {
                 while($installment <= $total_installments){
-                    $baseDate = clone $transaction_date;
+                    $baseDate = clone $payment_date;
                     $firstDayOfMonth = $baseDate->modify('first day of this month')->format('Y-m-d');
                     $lastDayOfMonth = $baseDate->modify('last day of this month')->format('Y-m-d');
     
@@ -450,7 +450,7 @@ class TransactionController extends Controller
                     &$usual
                 ){
                 while($installment <= $total_installments){
-                    $baseDate = clone $transaction_date;
+                    $baseDate = clone $payment_date;
                     $firstDayOfMonth = $baseDate->modify('first day of this month')->format('Y-m-d');
                     $lastDayOfMonth = $baseDate->modify('last day of this month')->format('Y-m-d');
     
@@ -766,7 +766,7 @@ class TransactionController extends Controller
                     $i = $ref_transaction->installment - 1;
                     while($i < $total_installments){
 
-                        $baseDate = clone $transaction_date;
+                        $baseDate = clone $payment_date;
                         $firstDayOfMonth = $baseDate->modify('first day of this month')->format('Y-m-d');
                         $lastDayOfMonth = $baseDate->modify('last day of this month')->format('Y-m-d');
 
@@ -820,7 +820,7 @@ class TransactionController extends Controller
                     }
                 } else {
 
-                    $baseDate = clone $transaction_date;
+                    $baseDate = clone $payment_date;
                     $firstDayOfMonth = $baseDate->modify('first day of this month')->format('Y-m-d');
                     $lastDayOfMonth = $baseDate->modify('last day of this month')->format('Y-m-d');
 
@@ -985,7 +985,7 @@ class TransactionController extends Controller
     
                     $i = $ref_transaction->installment - 1;
                     while($i < $total_installments){
-                        $baseDate = clone $transaction_date;
+                        $baseDate = clone $payment_date;
                         $firstDayOfMonth = $baseDate->modify('first day of this month')->format('Y-m-d');
                         $lastDayOfMonth = $baseDate->modify('last day of this month')->format('Y-m-d');
 
@@ -1039,7 +1039,7 @@ class TransactionController extends Controller
                     }
                 } else {
 
-                    $baseDate = clone $transaction_date;
+                    $baseDate = clone $payment_date;
                     $firstDayOfMonth = $baseDate->modify('first day of this month')->format('Y-m-d');
                     $lastDayOfMonth = $baseDate->modify('last day of this month')->format('Y-m-d');
 
