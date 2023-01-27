@@ -201,6 +201,40 @@ class TransactionController extends Controller
             return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
         }
     }
+
+    public function searchTransactions(Request $request){
+        date_default_timezone_set('America/Sao_Paulo');
+
+        /**
+         * QUERY PARAMS:
+         * q: string
+         */
+
+        try {
+
+            // Get and set "from" date
+
+            $searchQuery = $request->query('q');
+
+            $searchQueryArr = explode(';', $searchQuery);
+
+            $columns = ['value', 'description'];
+
+            $query = Transaction::query()->with('account')->with('category');
+            foreach($columns as $column){
+                forEach($searchQueryArr as $term){
+                    $query->orWhere($column, 'LIKE', '%' . trim($term) . '%');
+                }
+            }
+            
+            $result = $query->get();
+
+            return response()->json(["message" => "Busca realizada com sucesso", 'transactions' => $result], 200);
+
+        } catch (\Throwable $th) {
+            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
+        }
+    }
     
     public function storeIncome(Request $request){
         date_default_timezone_set('America/Sao_Paulo');
