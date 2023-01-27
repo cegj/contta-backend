@@ -251,14 +251,6 @@ class TransactionController extends Controller
                 return response()->json(["message" => "É necessário informar uma descrição para a transação"], 400);
             }
     
-            if (!$category_id){
-                return response()->json(["message" => "É necessário informar uma categoria para a transação"], 400);
-            }  
-            
-            if (!$budget_control && !$account_id){
-                return response()->json(["message" => "É necessário informar uma conta para a transação"], 400);
-            } 
-    
             // Get user id from auth user
             $user_id = JWTAuth::parseToken()->toUser()->id;
     
@@ -407,14 +399,6 @@ class TransactionController extends Controller
             if (!strlen($description)){
                 return response()->json(["message" => "É necessário informar uma descrição para a transação"], 400);
             }
-    
-            if (!$category_id){
-                return response()->json(["message" => "É necessário informar uma categoria para a transação"], 400);
-            }  
-            
-            if (!$budget_control && !$account_id){
-                return response()->json(["message" => "É necessário informar uma conta para a transação"], 400);
-            } 
     
             // Get user id from auth user
             $user_id = JWTAuth::parseToken()->toUser()->id;
