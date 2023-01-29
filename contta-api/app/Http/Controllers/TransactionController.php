@@ -39,6 +39,10 @@ class TransactionController extends Controller
         }
     }
 
+    private function editBudgetControl (){
+
+    }
+
     public function getTransactions(Request $request){
         date_default_timezone_set('America/Sao_Paulo');
 
@@ -324,7 +328,7 @@ class TransactionController extends Controller
                     $lastDayOfMonth = $baseDate->modify('last day of this month')->format('Y-m-d');
     
                     if ($budget_control){
-                        $budgetControlTransaction = Transaction::whereBetween('transaction_date', [$firstDayOfMonth, $lastDayOfMonth])
+                        $budgetControlTransaction = Transaction::whereBetween('payment_date', [$firstDayOfMonth, $lastDayOfMonth])
                         ->where('budget_control', 1)
                         ->where('category_id', $category_id)
                         ->where('type', 'R')
@@ -335,7 +339,7 @@ class TransactionController extends Controller
                     } 
     
                     if (!$budget_control){
-                        $budgetControlTransaction = Transaction::whereBetween('transaction_date', [$firstDayOfMonth, $lastDayOfMonth])
+                        $budgetControlTransaction = Transaction::whereBetween('payment_date', [$firstDayOfMonth, $lastDayOfMonth])
                         ->where('budget_control', 1)
                         ->where('category_id', $category_id)
                         ->where('type', 'R')
@@ -473,7 +477,7 @@ class TransactionController extends Controller
                     $lastDayOfMonth = $baseDate->modify('last day of this month')->format('Y-m-d');
     
                     if ($budget_control){
-                        $budgetControlTransaction = Transaction::whereBetween('transaction_date', [$firstDayOfMonth, $lastDayOfMonth])
+                        $budgetControlTransaction = Transaction::whereBetween('payment_date', [$firstDayOfMonth, $lastDayOfMonth])
                         ->where('budget_control', 1)
                         ->where('category_id', $category_id)
                         ->where('type', 'D')
@@ -484,7 +488,7 @@ class TransactionController extends Controller
                     } 
     
                     if (!$budget_control){
-                        $budgetControlTransaction = Transaction::whereBetween('transaction_date', [$firstDayOfMonth, $lastDayOfMonth])
+                        $budgetControlTransaction = Transaction::whereBetween('payment_date', [$firstDayOfMonth, $lastDayOfMonth])
                         ->where('budget_control', 1)
                         ->where('category_id', $category_id)
                         ->where('type', 'D')
@@ -789,7 +793,7 @@ class TransactionController extends Controller
                         $lastDayOfMonth = $baseDate->modify('last day of this month')->format('Y-m-d');
 
                         if (!$transactions[$i]->budget_control && $budget_control){
-                            $budgetControlTransaction = Transaction::whereBetween('transaction_date', [$firstDayOfMonth, $lastDayOfMonth])
+                            $budgetControlTransaction = Transaction::whereBetween('payment_date', [$firstDayOfMonth, $lastDayOfMonth])
                             ->where('budget_control', 1)
                             ->where('category_id', $category_id)
                             ->where('type', 'R')
@@ -800,7 +804,7 @@ class TransactionController extends Controller
                         } 
         
                         if (!$transactions[$i]->budget_control && !$budget_control){
-                            $budgetControlTransaction = Transaction::whereBetween('transaction_date', [$firstDayOfMonth, $lastDayOfMonth])
+                            $budgetControlTransaction = Transaction::whereBetween('payment_date', [$firstDayOfMonth, $lastDayOfMonth])
                             ->where('budget_control', 1)
                             ->where('category_id', $category_id)
                             ->where('type', 'R')
@@ -843,7 +847,7 @@ class TransactionController extends Controller
                     $lastDayOfMonth = $baseDate->modify('last day of this month')->format('Y-m-d');
 
                     if (!$ref_transaction->budget_control && $budget_control){
-                        $budgetControlTransaction = Transaction::whereBetween('transaction_date', [$firstDayOfMonth, $lastDayOfMonth])
+                        $budgetControlTransaction = Transaction::whereBetween('payment_date', [$firstDayOfMonth, $lastDayOfMonth])
                         ->where('budget_control', 1)
                         ->where('category_id', $category_id)
                         ->where('type', 'R')
@@ -854,7 +858,7 @@ class TransactionController extends Controller
                     } 
     
                     if (!$ref_transaction->budget_control && !$budget_control){
-                        $budgetControlTransaction = Transaction::whereBetween('transaction_date', [$firstDayOfMonth, $lastDayOfMonth])
+                        $budgetControlTransaction = Transaction::whereBetween('payment_date', [$firstDayOfMonth, $lastDayOfMonth])
                         ->where('budget_control', 1)
                         ->where('category_id', $category_id)
                         ->where('type', 'R')
@@ -1008,7 +1012,7 @@ class TransactionController extends Controller
                         $lastDayOfMonth = $baseDate->modify('last day of this month')->format('Y-m-d');
 
                         if (!$transactions[$i]->budget_control && $budget_control){
-                            $budgetControlTransaction = Transaction::whereBetween('transaction_date', [$firstDayOfMonth, $lastDayOfMonth])
+                            $budgetControlTransaction = Transaction::whereBetween('payment_date', [$firstDayOfMonth, $lastDayOfMonth])
                             ->where('budget_control', 1)
                             ->where('category_id', $category_id)
                             ->where('type', 'D')
@@ -1019,7 +1023,7 @@ class TransactionController extends Controller
                         } 
         
                         if (!$transactions[$i]->budget_control && !$budget_control){
-                            $budgetControlTransaction = Transaction::whereBetween('transaction_date', [$firstDayOfMonth, $lastDayOfMonth])
+                            $budgetControlTransaction = Transaction::whereBetween('payment_date', [$firstDayOfMonth, $lastDayOfMonth])
                             ->where('budget_control', 1)
                             ->where('category_id', $category_id)
                             ->where('type', 'D')
@@ -1062,7 +1066,7 @@ class TransactionController extends Controller
                     $lastDayOfMonth = $baseDate->modify('last day of this month')->format('Y-m-d');
 
                     if (!$ref_transaction->budget_control && $budget_control){
-                        $budgetControlTransaction = Transaction::whereBetween('transaction_date', [$firstDayOfMonth, $lastDayOfMonth])
+                        $budgetControlTransaction = Transaction::whereBetween('payment_date', [$firstDayOfMonth, $lastDayOfMonth])
                         ->where('budget_control', 1)
                         ->where('category_id', $category_id)
                         ->where('type', 'D')
@@ -1073,7 +1077,7 @@ class TransactionController extends Controller
                     } 
     
                     if (!$ref_transaction->budget_control && !$budget_control){
-                        $budgetControlTransaction = Transaction::whereBetween('transaction_date', [$firstDayOfMonth, $lastDayOfMonth])
+                        $budgetControlTransaction = Transaction::whereBetween('payment_date', [$firstDayOfMonth, $lastDayOfMonth])
                         ->where('budget_control', 1)
                         ->where('category_id', $category_id)
                         ->where('type', 'D')
