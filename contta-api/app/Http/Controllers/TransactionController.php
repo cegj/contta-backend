@@ -39,6 +39,10 @@ class TransactionController extends Controller
         }
     }
 
+    private function storeBudgetControl(){
+        
+    }
+
     private function editBudgetControl($transaction, $bodyPaymentDate, $bodyCategoryId, $bodyValue){
 
         //Restore value on old/actual db budget transaction
@@ -848,24 +852,6 @@ class TransactionController extends Controller
         
                         if (!$transactions[$i]->budget_control && !$budget_control){
                             $this->editBudgetControl($transactions[$i], $paymentDateStr, $category_id, $value);
-
-                            // $budgetControlTransaction = Transaction::whereBetween('payment_date', [$firstDayOfMonth, $lastDayOfMonth])
-                            // ->where('budget_control', 1)
-                            // ->where('category_id', $category_id)
-                            // ->where('type', 'R')
-                            // ->get(); 
-            
-                            // if (count($budgetControlTransaction) > 0){
-                            //     $budgetControlTransaction = $budgetControlTransaction[0];
-                            //     $result = ($budgetControlTransaction->value + $transactions[$i]->value) - $value;
-                            //     if ($result < 0) {
-                            //         $exceedValue = number_format(floatval($result)/100, 2, ",", ".");
-                            //         throw new \Exception("O valor desta transação ultrapassa o limite do controle do orçamento de {$budgetControlTransaction->transaction_date} em R$ {$exceedValue}", 400); 
-                            //     } else {
-                            //         $budgetControlTransaction->value = $result;
-                            //         $budgetControlTransaction->save();    
-                            //     }
-                            // }
                         }
 
                         $transactions[$i]->transaction_date = $transactionDateStr;
