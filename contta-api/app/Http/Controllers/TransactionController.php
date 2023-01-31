@@ -39,47 +39,43 @@ class TransactionController extends Controller
         }
     }
 
-    private function editBudgetControl ($transaction, $qBudgetControl, $qPaymentDate, $qCategoryId, $qValue){
+    private function editBudgetControl($transaction, $bodyPaymentDate, $bodyCategoryId, $bodyValue){
 
-        $baseDate = clone $qPaymentDate;
-        $firstDayOfMonth = $baseDate->modify('first day of this month')->format('Y-m-d');
-        $lastDayOfMonth = $baseDate->modify('last day of this month')->format('Y-m-d');
-
-        //O que influencia: VALOR - CATEGORIA - MÊS/ANO(PD)
-        $valueChanged = ($transaction->value != $qValue) ? true : false;
-        $categoryChanged = ($transaction->category_id != $qCategoryId) ? true : false;
-        $paymentDateChanged = (date('Y-m', strtotime($transaction->payment_date)) != date('Y-m', strtotime($qPaymentDate))) ? true : false;
-
-        //Restore value on old/actual budget transaction
-        $baseDate = clone $transaction->payment_date;
+        //Restore value on old/actual db budget transaction
+        $baseDate = new Datetime($transaction->payment_date);
         $firstDayOfMonth = $baseDate->modify('first day of this month')->format('Y-m-d');
         $lastDayOfMonth = $baseDate->modify('last day of this month')->format('Y-m-d');    
         $oldBcTransaction = Transaction::whereBetween('payment_date', [$firstDayOfMonth, $lastDayOfMonth])
-        ->where('budget_control', 1)
-        ->where('category_id', $transaction->category_id)
+        ->where('budget_control', 1)            
+        ->when($transaction->category_id, function ($q, $category_id) {
+            return $q->where('category_id', $category_id);
+        }, function ($q) {
+            return $q->whereNull('category_id');
+        })
         ->where('type', $transaction->type)
         ->get(); 
         if (count($oldBcTransaction) > 0){
             $oldBcTransaction = $oldBcTransaction[0];
             $result = $oldBcTransaction->value + $transaction->value;
-            $budgetControlTransaction->value = $result;
-            $budgetControlTransaction->save();    
+            $oldBcTransaction->value = $result;
+            $oldBcTransaction->save();    
         }
 
-        //Make changes on new BC (wich can be the same or not)
-        $baseDate = clone $qPaymentDate;
+        //Make changes on new BC (wich can be the same or not) based on body values
+        $baseDate = new Datetime($bodyPaymentDate);
         $firstDayOfMonth = $baseDate->modify('first day of this month')->format('Y-m-d');
         $lastDayOfMonth = $baseDate->modify('last day of this month')->format('Y-m-d');    
         $newBcTransaction = Transaction::whereBetween('payment_date', [$firstDayOfMonth, $lastDayOfMonth])
         ->where('budget_control', 1)
-        ->where('category_id', $qCategoryId)
+        ->where('category_id', $bodyCategoryId)
         ->where('type', $transaction->type)
         ->get(); 
 
         if (count($newBcTransaction) > 0){
             $newBcTransaction = $newBcTransaction[0];
-            $result = $newBcTransaction->value - $qValue;
-            if ($result > 0) {
+            $result = $newBcTransaction->value - $bodyValue;
+            $resultExceeds = $newBcTransaction->type == "R" ? $result < 0 : $result > 0; 
+            if ($resultExceeds) {
                 $exceedValue = number_format(floatval($result)/100, 2, ",", ".");
                 throw new \Exception("O valor desta transação ultrapassa o limite do controle do orçamento de {$newBcTransaction->transaction_date} em R$ {$exceedValue}", 400); 
             } else {
@@ -851,23 +847,25 @@ class TransactionController extends Controller
                         } 
         
                         if (!$transactions[$i]->budget_control && !$budget_control){
-                            $budgetControlTransaction = Transaction::whereBetween('payment_date', [$firstDayOfMonth, $lastDayOfMonth])
-                            ->where('budget_control', 1)
-                            ->where('category_id', $category_id)
-                            ->where('type', 'R')
-                            ->get(); 
+                            $this->editBudgetControl($transactions[$i], $paymentDateStr, $category_id, $value);
+
+                            // $budgetControlTransaction = Transaction::whereBetween('payment_date', [$firstDayOfMonth, $lastDayOfMonth])
+                            // ->where('budget_control', 1)
+                            // ->where('category_id', $category_id)
+                            // ->where('type', 'R')
+                            // ->get(); 
             
-                            if (count($budgetControlTransaction) > 0){
-                                $budgetControlTransaction = $budgetControlTransaction[0];
-                                $result = ($budgetControlTransaction->value + $transactions[$i]->value) - $value;
-                                if ($result < 0) {
-                                    $exceedValue = number_format(floatval($result)/100, 2, ",", ".");
-                                    throw new \Exception("O valor desta transação ultrapassa o limite do controle do orçamento de {$budgetControlTransaction->transaction_date} em R$ {$exceedValue}", 400); 
-                                } else {
-                                    $budgetControlTransaction->value = $result;
-                                    $budgetControlTransaction->save();    
-                                }
-                            }
+                            // if (count($budgetControlTransaction) > 0){
+                            //     $budgetControlTransaction = $budgetControlTransaction[0];
+                            //     $result = ($budgetControlTransaction->value + $transactions[$i]->value) - $value;
+                            //     if ($result < 0) {
+                            //         $exceedValue = number_format(floatval($result)/100, 2, ",", ".");
+                            //         throw new \Exception("O valor desta transação ultrapassa o limite do controle do orçamento de {$budgetControlTransaction->transaction_date} em R$ {$exceedValue}", 400); 
+                            //     } else {
+                            //         $budgetControlTransaction->value = $result;
+                            //         $budgetControlTransaction->save();    
+                            //     }
+                            // }
                         }
 
                         $transactions[$i]->transaction_date = $transactionDateStr;
@@ -905,23 +903,25 @@ class TransactionController extends Controller
                     } 
     
                     if (!$ref_transaction->budget_control && !$budget_control){
-                        $budgetControlTransaction = Transaction::whereBetween('payment_date', [$firstDayOfMonth, $lastDayOfMonth])
-                        ->where('budget_control', 1)
-                        ->where('category_id', $category_id)
-                        ->where('type', 'R')
-                        ->get(); 
+                        $this->editBudgetControl($ref_transaction, $paymentDateStr, $category_id, $value);
+
+                        // $budgetControlTransaction = Transaction::whereBetween('payment_date', [$firstDayOfMonth, $lastDayOfMonth])
+                        // ->where('budget_control', 1)
+                        // ->where('category_id', $category_id)
+                        // ->where('type', 'R')
+                        // ->get(); 
         
-                        if (count($budgetControlTransaction) > 0){
-                            $budgetControlTransaction = $budgetControlTransaction[0];
-                            $result = ($budgetControlTransaction->value + $ref_transaction->value) - $value;
-                            if ($result < 0) {
-                                $exceedValue = number_format(floatval($result)/100, 2, ",", ".");
-                                throw new \Exception("O valor desta transação ultrapassa o limite do controle do orçamento de {$budgetControlTransaction->transaction_date} em R$ {$exceedValue}", 400); 
-                            } else {
-                                $budgetControlTransaction->value = $result;
-                                $budgetControlTransaction->save();    
-                            }
-                        }
+                        // if (count($budgetControlTransaction) > 0){
+                        //     $budgetControlTransaction = $budgetControlTransaction[0];
+                        //     $result = ($budgetControlTransaction->value + $ref_transaction->value) - $value;
+                        //     if ($result < 0) {
+                        //         $exceedValue = number_format(floatval($result)/100, 2, ",", ".");
+                        //         throw new \Exception("O valor desta transação ultrapassa o limite do controle do orçamento de {$budgetControlTransaction->transaction_date} em R$ {$exceedValue}", 400); 
+                        //     } else {
+                        //         $budgetControlTransaction->value = $result;
+                        //         $budgetControlTransaction->save();    
+                        //     }
+                        // }
                     }
 
                     $ref_transaction->transaction_date = $transactionDateStr;
@@ -1069,9 +1069,9 @@ class TransactionController extends Controller
                                 throw new \Exception("Já existe uma transação de controle de orçamento do tipo Despesa no mês da transação de {$transactionDateStr}", 400); 
                             }
                         } 
-        
+
                         if (!$transactions[$i]->budget_control && !$budget_control){
-                            $this->editBudgetControl($transactions[$i], $budget_control, $payment_date, $category, $value);
+                            $this->editBudgetControl($transactions[$i], $paymentDateStr, $category_id, $value);
                         }
 
                         $transactions[$i]->transaction_date = $transactionDateStr;
@@ -1107,27 +1107,11 @@ class TransactionController extends Controller
                             throw new \Exception("Já existe uma transação de controle de orçamento do tipo Despesa no mês da transação de {$transactionDateStr}", 400); 
                         }
                     } 
-    
-                    if (!$ref_transaction->budget_control && !$budget_control){
-                        $budgetControlTransaction = Transaction::whereBetween('payment_date', [$firstDayOfMonth, $lastDayOfMonth])
-                        ->where('budget_control', 1)
-                        ->where('category_id', $category_id)
-                        ->where('type', 'D')
-                        ->get(); 
-        
-                        if (count($budgetControlTransaction) > 0){
-                            $budgetControlTransaction = $budgetControlTransaction[0];
-                            $result = ($budgetControlTransaction->value + $ref_transaction->value) - $value;
-                            if ($result > 0) {
-                                $exceedValue = number_format(floatval($result)/100, 2, ",", ".");
-                                throw new \Exception("O valor desta transação ultrapassa o limite do controle do orçamento de {$budgetControlTransaction->transaction_date} em R$ {$exceedValue}", 400); 
-                            } else {
-                                $budgetControlTransaction->value = $result;
-                                $budgetControlTransaction->save();    
-                            }
-                        }
-                    }
 
+                    if (!$ref_transaction->budget_control && !$budget_control){
+                        $this->editBudgetControl($ref_transaction, $paymentDateStr, $category_id, $value);
+                    }
+    
                     $ref_transaction->transaction_date = $transactionDateStr;
                     $ref_transaction->payment_date = $paymentDateStr;
                     $ref_transaction->value = $value;
@@ -1146,7 +1130,7 @@ class TransactionController extends Controller
             return response()->json(["message" => "Transação alterada com sucesso", "transactions" => $editedTransactions], 200);
         
         } catch (\Throwable $th) {
-            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
+            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage(), "origin" => basename($th->getFile()), "line" => $th->getLine()], 500);
         }
     }
 
