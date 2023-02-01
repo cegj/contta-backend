@@ -30,7 +30,7 @@ class CategoryController extends Controller
         
             return response()->json(["message" => "Categoria com sucesso", "category" => $category], 200);
             } catch (\Throwable $th) {
-                return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
+                return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage(), "origin" => basename($th->getFile()), "line" => $th->getLine()], 500);
         }
     }
 
@@ -51,7 +51,7 @@ class CategoryController extends Controller
         
             return response()->json(["message" => "Categoria editada com sucesso", "category" => $category], 200);
             } catch (\Throwable $th) {
-                return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
+                return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage(), "origin" => basename($th->getFile()), "line" => $th->getLine()], 500);
         }
     }
 
@@ -69,7 +69,7 @@ class CategoryController extends Controller
             return response()->json(["message" => "Categoria {$category->name} removida com sucesso"], 200);
 
         } catch (\Throwable $th) {
-            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
+            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage(), "origin" => basename($th->getFile()), "line" => $th->getLine()], 500);
         }
     }
 
@@ -90,7 +90,7 @@ class CategoryController extends Controller
             }
 
         } catch (\Throwable $th) {
-            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
+            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage(), "origin" => basename($th->getFile()), "line" => $th->getLine()], 500);
         }
     }
 

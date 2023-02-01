@@ -64,7 +64,7 @@ class SetupController extends Controller
             }
         
         } catch (\Throwable $th) {
-            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
+            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage(), "origin" => basename($th->getFile()), "line" => $th->getLine()], 500);
         }
 
 
@@ -97,7 +97,7 @@ class SetupController extends Controller
             }
 
         } catch (\Throwable $th) {
-            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
+            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage(), "origin" => basename($th->getFile()), "line" => $th->getLine()], 500);
         }
 
 
@@ -136,7 +136,7 @@ class SetupController extends Controller
             return response()->json(["message" => "Grupos e categorias criados com sucesso"], 200);
 
             } catch (\Throwable $th) {
-                return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
+                return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage(), "origin" => basename($th->getFile()), "line" => $th->getLine()], 500);
             }
 
 

@@ -22,7 +22,7 @@ class GroupController extends Controller
         
             return response()->json(["message" => "Grupo criado com sucesso", "group" => $group], 200);
             } catch (\Throwable $th) {
-                return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
+                return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage(), "origin" => basename($th->getFile()), "line" => $th->getLine()], 500);
             }
     }
 
@@ -41,7 +41,7 @@ class GroupController extends Controller
         
             return response()->json(["message" => "Grupo editado com sucesso", "group" => $group], 200);
             } catch (\Throwable $th) {
-                return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
+                return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage(), "origin" => basename($th->getFile()), "line" => $th->getLine()], 500);
         }
     }
 
@@ -60,7 +60,7 @@ class GroupController extends Controller
             return response()->json(["message" => "Grupo {$group->name} removido com sucesso"], 200);
 
         } catch (\Throwable $th) {
-            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
+            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage(), "origin" => basename($th->getFile()), "line" => $th->getLine()], 500);
         }
     }
 
@@ -81,7 +81,7 @@ class GroupController extends Controller
             }
 
         } catch (\Throwable $th) {
-            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage()], 500);
+            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage(), "origin" => basename($th->getFile()), "line" => $th->getLine()], 500);
         }
     }
 
