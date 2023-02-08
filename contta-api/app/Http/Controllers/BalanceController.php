@@ -20,6 +20,7 @@ class BalanceController extends Controller
          * includepreview: true || false
          * account: int/string
          * category: int/string
+         * group: int/string
          * includehiddenaccounts: true | false (default)
          */
 
@@ -58,10 +59,16 @@ class BalanceController extends Controller
                 return response()->json(["message" => "O parâmetro incluir transações previstas ('includeexpected') deve ser informado"], 400);
             }
 
+            if ($request->filled('group') && $request->filled('category')){
+                return response()->json(["message" => "Não é possível filtrar por grupo e categoria ao mesmo tempo"], 400);
+            }
+
             $account = $request->query('account');
             if ($account === "0"){$account = "null";};
             $category = $request->query('category');
             if ($category === "0"){$category = "null";};
+            $group = $request->query('group');
+            if ($group === "0"){$group = "null";};
             $includeHiddenAccounts = filter_var($request->includehiddenaccounts, FILTER_VALIDATE_BOOLEAN);
 
             if($dateQuery){
@@ -91,7 +98,16 @@ class BalanceController extends Controller
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
                     if ($account === "null") {return $q->whereNull('account_id');}
-                    else return $q->where('account_id', '=', $account);})    
+                    else return $q->where('account_id', '=', $account);})  
+                ->when($group, function($q, $group){
+                    if ($group === "null") {return $q->whereNull('category_id');}
+                    else {
+                        $categoriesOfGroup = Category::select("id")->where("group_id", $group)->get();
+                        $ids = [];
+                        foreach($categoriesOfGroup as $id){
+                            array_push($ids, $id["id"]);
+                        }
+                        return $q->whereIn('category_id', $ids);}})    
                 ->when($category, function($q, $category){
                     if ($category === "null") {return $q->whereNull('category_id');}
                     else return $q->where('category_id', '=', $category);})    
@@ -110,7 +126,16 @@ class BalanceController extends Controller
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
                     if ($account === "null") {return $q->whereNull('account_id');}
-                    else return $q->where('account_id', '=', $account);})    
+                    else return $q->where('account_id', '=', $account);})  
+                ->when($group, function($q, $group){
+                    if ($group === "null") {return $q->whereNull('category_id');}
+                    else {
+                        $categoriesOfGroup = Category::select("id")->where("group_id", $group)->get();
+                        $ids = [];
+                        foreach($categoriesOfGroup as $id){
+                            array_push($ids, $id["id"]);
+                        }
+                        return $q->whereIn('category_id', $ids);}})        
                 ->when($category, function($q, $category){
                     if ($category === "null") {return $q->whereNull('category_id');}
                     else return $q->where('category_id', '=', $category);})    
@@ -128,7 +153,16 @@ class BalanceController extends Controller
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
                     if ($account === "null") {return $q->whereNull('account_id');}
-                    else return $q->where('account_id', '=', $account);})    
+                    else return $q->where('account_id', '=', $account);})
+                ->when($group, function($q, $group){
+                    if ($group === "null") {return $q->whereNull('category_id');}
+                    else {
+                        $categoriesOfGroup = Category::select("id")->where("group_id", $group)->get();
+                        $ids = [];
+                        foreach($categoriesOfGroup as $id){
+                            array_push($ids, $id["id"]);
+                        }
+                        return $q->whereIn('category_id', $ids);}})               
                 ->when($category, function($q, $category){
                     if ($category === "null") {return $q->whereNull('category_id');}
                     else return $q->where('category_id', '=', $category);})    
@@ -148,7 +182,16 @@ class BalanceController extends Controller
                     return $q->where('preview', '=', 0);})            
                 ->when($account, function($q, $account){
                     if ($account === "null") {return $q->whereNull('account_id');}
-                    else return $q->where('account_id', '=', $account);})    
+                    else return $q->where('account_id', '=', $account);})
+                ->when($group, function($q, $group){
+                    if ($group === "null") {return $q->whereNull('category_id');}
+                    else {
+                        $categoriesOfGroup = Category::select("id")->where("group_id", $group)->get();
+                        $ids = [];
+                        foreach($categoriesOfGroup as $id){
+                            array_push($ids, $id["id"]);
+                        }
+                        return $q->whereIn('category_id', $ids);}})                
                 ->when($category, function($q, $category){
                     if ($category === "null") {return $q->whereNull('category_id');}
                     else return $q->where('category_id', '=', $category);})    
@@ -167,7 +210,16 @@ class BalanceController extends Controller
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
                     if ($account === "null") {return $q->whereNull('account_id');}
-                    else return $q->where('account_id', '=', $account);})    
+                    else return $q->where('account_id', '=', $account);}) 
+                ->when($group, function($q, $group){
+                    if ($group === "null") {return $q->whereNull('category_id');}
+                    else {
+                        $categoriesOfGroup = Category::select("id")->where("group_id", $group)->get();
+                        $ids = [];
+                        foreach($categoriesOfGroup as $id){
+                            array_push($ids, $id["id"]);
+                        }
+                        return $q->whereIn('category_id', $ids);}})                       
                 ->when($category, function($q, $category){
                     if ($category === "null") {return $q->whereNull('category_id');}
                     else return $q->where('category_id', '=', $category);})    
@@ -185,7 +237,16 @@ class BalanceController extends Controller
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
                     if ($account === "null") {return $q->whereNull('account_id');}
-                    else return $q->where('account_id', '=', $account);})    
+                    else return $q->where('account_id', '=', $account);})
+                ->when($group, function($q, $group){
+                    if ($group === "null") {return $q->whereNull('category_id');}
+                    else {
+                        $categoriesOfGroup = Category::select("id")->where("group_id", $group)->get();
+                        $ids = [];
+                        foreach($categoriesOfGroup as $id){
+                            array_push($ids, $id["id"]);
+                        }
+                        return $q->whereIn('category_id', $ids);}})                        
                 ->when($category, function($q, $category){
                     if ($category === "null") {return $q->whereNull('category_id');}
                     else return $q->where('category_id', '=', $category);})    
@@ -205,7 +266,16 @@ class BalanceController extends Controller
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
                     if ($account === "null") {return $q->whereNull('account_id');}
-                    else return $q->where('account_id', '=', $account);})    
+                    else return $q->where('account_id', '=', $account);})
+                ->when($group, function($q, $group){
+                    if ($group === "null") {return $q->whereNull('category_id');}
+                    else {
+                        $categoriesOfGroup = Category::select("id")->where("group_id", $group)->get();
+                        $ids = [];
+                        foreach($categoriesOfGroup as $id){
+                            array_push($ids, $id["id"]);
+                        }
+                        return $q->whereIn('category_id', $ids);}})                        
                 ->when($category, function($q, $category){
                     if ($category === "null") {return $q->whereNull('category_id');}
                     else return $q->where('category_id', '=', $category);})                  
@@ -224,7 +294,16 @@ class BalanceController extends Controller
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
                     if ($account === "null") {return $q->whereNull('account_id');}
-                    else return $q->where('account_id', '=', $account);})    
+                    else return $q->where('account_id', '=', $account);})
+                ->when($group, function($q, $group){
+                    if ($group === "null") {return $q->whereNull('category_id');}
+                    else {
+                        $categoriesOfGroup = Category::select("id")->where("group_id", $group)->get();
+                        $ids = [];
+                        foreach($categoriesOfGroup as $id){
+                            array_push($ids, $id["id"]);
+                        }
+                        return $q->whereIn('category_id', $ids);}})                        
                 ->when($category, function($q, $category){
                     if ($category === "null") {return $q->whereNull('category_id');}
                     else return $q->where('category_id', '=', $category);})           
@@ -242,7 +321,16 @@ class BalanceController extends Controller
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
                     if ($account === "null") {return $q->whereNull('account_id');}
-                    else return $q->where('account_id', '=', $account);})    
+                    else return $q->where('account_id', '=', $account);})
+                ->when($group, function($q, $group){
+                    if ($group === "null") {return $q->whereNull('category_id');}
+                    else {
+                        $categoriesOfGroup = Category::select("id")->where("group_id", $group)->get();
+                        $ids = [];
+                        foreach($categoriesOfGroup as $id){
+                            array_push($ids, $id["id"]);
+                        }
+                        return $q->whereIn('category_id', $ids);}})                       
                 ->when($category, function($q, $category){
                     if ($category === "null") {return $q->whereNull('category_id');}
                     else return $q->where('category_id', '=', $category);})                     
@@ -293,7 +381,16 @@ class BalanceController extends Controller
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
                     if ($account === "null") {return $q->whereNull('account_id');}
-                    else return $q->where('account_id', '=', $account);})    
+                    else return $q->where('account_id', '=', $account);}) 
+                ->when($group, function($q, $group){
+                    if ($group === "null") {return $q->whereNull('category_id');}
+                    else {
+                        $categoriesOfGroup = Category::select("id")->where("group_id", $group)->get();
+                        $ids = [];
+                        foreach($categoriesOfGroup as $id){
+                            array_push($ids, $id["id"]);
+                        }
+                        return $q->whereIn('category_id', $ids);}})                       
                 ->when($category, function($q, $category){
                     if ($category === "null") {return $q->whereNull('category_id');}
                     else return $q->where('category_id', '=', $category);})                    
@@ -312,7 +409,16 @@ class BalanceController extends Controller
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
                     if ($account === "null") {return $q->whereNull('account_id');}
-                    else return $q->where('account_id', '=', $account);})    
+                    else return $q->where('account_id', '=', $account);})
+                ->when($group, function($q, $group){
+                    if ($group === "null") {return $q->whereNull('category_id');}
+                    else {
+                        $categoriesOfGroup = Category::select("id")->where("group_id", $group)->get();
+                        $ids = [];
+                        foreach($categoriesOfGroup as $id){
+                            array_push($ids, $id["id"]);
+                        }
+                        return $q->whereIn('category_id', $ids);}})                        
                 ->when($category, function($q, $category){
                     if ($category === "null") {return $q->whereNull('category_id');}
                     else return $q->where('category_id', '=', $category);})      
@@ -330,7 +436,16 @@ class BalanceController extends Controller
                     return $q->where('preview', '=', 0);})
                 ->when($account, function($q, $account){
                     if ($account === "null") {return $q->whereNull('account_id');}
-                    else return $q->where('account_id', '=', $account);})    
+                    else return $q->where('account_id', '=', $account);})
+                ->when($group, function($q, $group){
+                    if ($group === "null") {return $q->whereNull('category_id');}
+                    else {
+                        $categoriesOfGroup = Category::select("id")->where("group_id", $group)->get();
+                        $ids = [];
+                        foreach($categoriesOfGroup as $id){
+                            array_push($ids, $id["id"]);
+                        }
+                        return $q->whereIn('category_id', $ids);}})                        
                 ->when($category, function($q, $category){
                     if ($category === "null") {return $q->whereNull('category_id');}
                     else return $q->where('category_id', '=', $category);})                    
