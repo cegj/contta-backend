@@ -466,6 +466,361 @@ class BalanceController extends Controller
         }   
     }
 
+    public function getMonthBalance(Request $request){
+
+        /**
+         * QUERIES:
+         * date: YYYY-MM-AA 
+         * from: YYYY-MM-AA
+         * to: YYYY-MM-AA
+         * typeofdate: transaction_date || payment_date 
+         * includepreview: true || false
+         * account: int/string
+         * category: int/string
+         * group: int/string
+         * includehiddenaccounts: true | false (default)
+         */
+
+        try{
+            // Get and set date
+            $yearMonthQuery = $request->query('yearmonth');
+
+            if (!$yearMonthQuery){
+                return response()->json(["message" => "É necessário informar o mês e o ano (yearnmonth) no formato AAAA-MM"], 400);
+            }
+
+            $refDate = $request->query('yearmonth') . "-01";
+            
+            $typeOfDate = $request->query('typeofdate');
+            if ($typeOfDate){
+                if ($typeOfDate != 'transaction_date'){
+                    if ($typeOfDate != 'payment_date'){
+                        return response()->json(["message" => "O tipo de data ('typeofdate') é inválido, informe 'transaction_date' ou 'payment_date'"], 400);  
+                    }}
+            } else {
+                return response()->json(["message" => "O tipo de data ('typeofdate') não foi informado"], 400);
+            }
+
+            $includeExpected = $request->query('includeexpected');
+            if ($includeExpected){
+                if ($includeExpected == 'true' || $includeExpected == 'false'){
+                    $includeExpected = ($includeExpected == 'true') ? true : false;
+                } else {
+                  return response()->json(["message" => "O parâmetro incluir transações previstas ('includeexpected') é inválido, informe 'true' ou 'false'"], 400);  
+                }
+            } else {
+                return response()->json(["message" => "O parâmetro incluir transações previstas ('includeexpected') deve ser informado"], 400);
+            }
+
+            if ($request->filled('group') && $request->filled('category')){
+                return response()->json(["message" => "Não é possível filtrar por grupo e categoria ao mesmo tempo"], 400);
+            }
+
+            $account = $request->query('account');
+            if ($account === "0"){$account = "null";};
+            $category = $request->query('category');
+            if ($category === "0"){$category = "null";};
+            $group = $request->query('group');
+            if ($group === "0"){$group = "null";};
+            $includeHiddenAccounts = filter_var($request->includehiddenaccounts, FILTER_VALIDATE_BOOLEAN);
+
+            $refDateArr = explode('-', $refDate);
+            $dateIsValid = checkdate($refDateArr[1], $refDateArr[2], $refDateArr[0]);
+            if (!$dateIsValid){
+                return response()->json(["message" => "O mês e/ou o ano escolhido ({$yearMonthQuery}) é inválido"], 400);
+            }
+
+            $firstDateOfMonth = $refDate;
+            $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $refDateArr[1], $refDateArr[0]);
+            $refDate = new Datetime($refDate);
+            $refDateStr = $refDate->format('Y-m-d');
+
+            $response = [];
+
+            for ($i = 1; $i <= $daysInMonth; $i++){
+            //Date balance
+            $incomesOfDate = Transaction::select("value", $typeOfDate)
+            ->where($typeOfDate, '=', $refDateStr)
+            ->where('budget_control', 0)
+            ->when(($includeHiddenAccounts != "true"), function($q){
+                return $q->where(function ($q) {
+                    $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                });})     
+            ->where('type', "=", 'R')
+            ->when(!$includeExpected, function($q){
+                return $q->where('preview', '=', 0);})
+            ->when($account, function($q, $account){
+                if ($account === "null") {return $q->whereNull('account_id');}
+                else return $q->where('account_id', '=', $account);})  
+            ->when($group, function($q, $group){
+                if ($group === "null") {return $q->whereNull('category_id');}
+                else {
+                    $categoriesOfGroup = Category::select("id")->where("group_id", $group)->get();
+                    $ids = [];
+                    foreach($categoriesOfGroup as $id){
+                        array_push($ids, $id["id"]);
+                    }
+                    return $q->whereIn('category_id', $ids);}})    
+            ->when($category, function($q, $category){
+                if ($category === "null") {return $q->whereNull('category_id');}
+                else return $q->where('category_id', '=', $category);})    
+            ->get()
+            ->sum('value');
+
+            $expensesOfDate = Transaction::select("value", $typeOfDate)
+            ->where($typeOfDate, "=", $refDateStr)
+            ->where('budget_control', 0)
+            ->when(($includeHiddenAccounts != "true"), function($q){
+                return $q->where(function ($q) {
+                    $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                });})     
+            ->where('type', "=", 'D')
+            ->when(!$includeExpected, function($q){
+                return $q->where('preview', '=', 0);})
+            ->when($account, function($q, $account){
+                if ($account === "null") {return $q->whereNull('account_id');}
+                else return $q->where('account_id', '=', $account);})  
+            ->when($group, function($q, $group){
+                if ($group === "null") {return $q->whereNull('category_id');}
+                else {
+                    $categoriesOfGroup = Category::select("id")->where("group_id", $group)->get();
+                    $ids = [];
+                    foreach($categoriesOfGroup as $id){
+                        array_push($ids, $id["id"]);
+                    }
+                    return $q->whereIn('category_id', $ids);}})        
+            ->when($category, function($q, $category){
+                if ($category === "null") {return $q->whereNull('category_id');}
+                else return $q->where('category_id', '=', $category);})    
+            ->get()
+            ->sum('value');
+
+            $balanceOfDate = Transaction::select("value", $typeOfDate)
+            ->where($typeOfDate, "=", $refDateStr)
+            ->where('budget_control', 0)
+            ->when(($includeHiddenAccounts != "true"), function($q){
+                return $q->where(function ($q) {
+                    $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                });})     
+            ->when(!$includeExpected, function($q){
+                return $q->where('preview', '=', 0);})
+            ->when($account, function($q, $account){
+                if ($account === "null") {return $q->whereNull('account_id');}
+                else return $q->where('account_id', '=', $account);})
+            ->when($group, function($q, $group){
+                if ($group === "null") {return $q->whereNull('category_id');}
+                else {
+                    $categoriesOfGroup = Category::select("id")->where("group_id", $group)->get();
+                    $ids = [];
+                    foreach($categoriesOfGroup as $id){
+                        array_push($ids, $id["id"]);
+                    }
+                    return $q->whereIn('category_id', $ids);}})               
+            ->when($category, function($q, $category){
+                if ($category === "null") {return $q->whereNull('category_id');}
+                else return $q->where('category_id', '=', $category);})    
+                ->get()
+            ->sum('value');
+
+            //Month balance until date
+            $incomesOfMonth = Transaction::select("value", $typeOfDate)
+            ->whereBetween($typeOfDate, [$firstDateOfMonth, $refDateStr])
+            ->where('budget_control', 0)
+            ->when(($includeHiddenAccounts != "true"), function($q){
+                return $q->where(function ($q) {
+                    $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                });})     
+            ->where('type', "=", 'R')
+            ->when(!$includeExpected, function($q){
+                return $q->where('preview', '=', 0);})            
+            ->when($account, function($q, $account){
+                if ($account === "null") {return $q->whereNull('account_id');}
+                else return $q->where('account_id', '=', $account);})
+            ->when($group, function($q, $group){
+                if ($group === "null") {return $q->whereNull('category_id');}
+                else {
+                    $categoriesOfGroup = Category::select("id")->where("group_id", $group)->get();
+                    $ids = [];
+                    foreach($categoriesOfGroup as $id){
+                        array_push($ids, $id["id"]);
+                    }
+                    return $q->whereIn('category_id', $ids);}})                
+            ->when($category, function($q, $category){
+                if ($category === "null") {return $q->whereNull('category_id');}
+                else return $q->where('category_id', '=', $category);})    
+            ->get()
+            ->sum('value');
+
+            $expensesOfMonth = Transaction::select("value", $typeOfDate)
+            ->whereBetween($typeOfDate, [$firstDateOfMonth, $refDateStr])
+            ->where('budget_control', 0)
+            ->when(($includeHiddenAccounts != "true"), function($q){
+                return $q->where(function ($q) {
+                    $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                });})     
+            ->where('type', "=", 'D')
+            ->when(!$includeExpected, function($q){
+                return $q->where('preview', '=', 0);})
+            ->when($account, function($q, $account){
+                if ($account === "null") {return $q->whereNull('account_id');}
+                else return $q->where('account_id', '=', $account);}) 
+            ->when($group, function($q, $group){
+                if ($group === "null") {return $q->whereNull('category_id');}
+                else {
+                    $categoriesOfGroup = Category::select("id")->where("group_id", $group)->get();
+                    $ids = [];
+                    foreach($categoriesOfGroup as $id){
+                        array_push($ids, $id["id"]);
+                    }
+                    return $q->whereIn('category_id', $ids);}})                       
+            ->when($category, function($q, $category){
+                if ($category === "null") {return $q->whereNull('category_id');}
+                else return $q->where('category_id', '=', $category);})    
+            ->get()
+            ->sum('value');
+
+            $balanceOfMonth = Transaction::select("value", $typeOfDate)
+            ->whereBetween($typeOfDate, [$firstDateOfMonth, $refDateStr])
+            ->where('budget_control', 0)
+            ->when(($includeHiddenAccounts != "true"), function($q){
+                return $q->where(function ($q) {
+                    $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                });})     
+            ->when(!$includeExpected, function($q){
+                return $q->where('preview', '=', 0);})
+            ->when($account, function($q, $account){
+                if ($account === "null") {return $q->whereNull('account_id');}
+                else return $q->where('account_id', '=', $account);})
+            ->when($group, function($q, $group){
+                if ($group === "null") {return $q->whereNull('category_id');}
+                else {
+                    $categoriesOfGroup = Category::select("id")->where("group_id", $group)->get();
+                    $ids = [];
+                    foreach($categoriesOfGroup as $id){
+                        array_push($ids, $id["id"]);
+                    }
+                    return $q->whereIn('category_id', $ids);}})                        
+            ->when($category, function($q, $category){
+                if ($category === "null") {return $q->whereNull('category_id');}
+                else return $q->where('category_id', '=', $category);})    
+            ->get()
+            ->sum('value');
+
+            //General balance until date
+            $incomesOfAll = Transaction::select("value", $typeOfDate)
+            ->where($typeOfDate, "<=", $refDateStr)
+            ->where('budget_control', 0)
+            ->when(($includeHiddenAccounts != "true"), function($q){
+                return $q->where(function ($q) {
+                    $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                });})     
+            ->where('type', "=", 'R')
+            ->when(!$includeExpected, function($q){
+                return $q->where('preview', '=', 0);})
+            ->when($account, function($q, $account){
+                if ($account === "null") {return $q->whereNull('account_id');}
+                else return $q->where('account_id', '=', $account);})
+            ->when($group, function($q, $group){
+                if ($group === "null") {return $q->whereNull('category_id');}
+                else {
+                    $categoriesOfGroup = Category::select("id")->where("group_id", $group)->get();
+                    $ids = [];
+                    foreach($categoriesOfGroup as $id){
+                        array_push($ids, $id["id"]);
+                    }
+                    return $q->whereIn('category_id', $ids);}})                        
+            ->when($category, function($q, $category){
+                if ($category === "null") {return $q->whereNull('category_id');}
+                else return $q->where('category_id', '=', $category);})                  
+            ->get()
+            ->sum('value');
+
+            $expensesOfAll = Transaction::select("value", $typeOfDate)
+            ->where($typeOfDate, "<=", $refDateStr)
+            ->where('budget_control', 0)
+            ->when(($includeHiddenAccounts != "true"), function($q){
+                return $q->where(function ($q) {
+                    $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                });})     
+            ->where('type', "=", 'D')
+            ->when(!$includeExpected, function($q){
+                return $q->where('preview', '=', 0);})
+            ->when($account, function($q, $account){
+                if ($account === "null") {return $q->whereNull('account_id');}
+                else return $q->where('account_id', '=', $account);})
+            ->when($group, function($q, $group){
+                if ($group === "null") {return $q->whereNull('category_id');}
+                else {
+                    $categoriesOfGroup = Category::select("id")->where("group_id", $group)->get();
+                    $ids = [];
+                    foreach($categoriesOfGroup as $id){
+                        array_push($ids, $id["id"]);
+                    }
+                    return $q->whereIn('category_id', $ids);}})                        
+            ->when($category, function($q, $category){
+                if ($category === "null") {return $q->whereNull('category_id');}
+                else return $q->where('category_id', '=', $category);})           
+            ->get()
+            ->sum('value');
+
+            $balanceOfAll = Transaction::select("value", $typeOfDate)
+            ->where($typeOfDate, "<=", $refDateStr)
+            ->where('budget_control', 0)
+            ->when(($includeHiddenAccounts != "true"), function($q){
+                return $q->where(function ($q) {
+                    $q->whereRelation('account', 'show', '=', 1)->orWhere('account_id', null);
+                });})     
+            ->when(!$includeExpected, function($q){
+                return $q->where('preview', '=', 0);})
+            ->when($account, function($q, $account){
+                if ($account === "null") {return $q->whereNull('account_id');}
+                else return $q->where('account_id', '=', $account);})
+            ->when($group, function($q, $group){
+                if ($group === "null") {return $q->whereNull('category_id');}
+                else {
+                    $categoriesOfGroup = Category::select("id")->where("group_id", $group)->get();
+                    $ids = [];
+                    foreach($categoriesOfGroup as $id){
+                        array_push($ids, $id["id"]);
+                    }
+                    return $q->whereIn('category_id', $ids);}})                       
+            ->when($category, function($q, $category){
+                if ($category === "null") {return $q->whereNull('category_id');}
+                else return $q->where('category_id', '=', $category);})                     
+            ->get()
+            ->sum('value');
+
+            $response[$i] = [
+                "date" => [
+                    'incomes' => $incomesOfDate,
+                    'expenses' => $expensesOfDate,
+                    'balance' => $balanceOfDate  
+                ],
+                "month_to_date" => [
+                    'incomes' => $incomesOfMonth,
+                    'expenses' => $expensesOfMonth,
+                    'balance' => $balanceOfMonth  
+                ],
+                "all_to_date" => [
+                    'incomes' => $incomesOfAll,
+                    'expenses' => $expensesOfAll,
+                    'balance' => $balanceOfAll  
+                ],                  
+            ];
+
+        //Increment values for next day
+        $refDateStr = $refDate->modify("+1 month")->format('Y-m-d');
+        }
+
+            return response()->json([
+                "message" => "Saldo obtido de {$yearMonthQuery}",
+                "balances" => $response             
+                ], 200);
+        } catch (\Throwable $th) {
+            return response()->json(["message" => "Ocorreu um erro", "error" => $th->getMessage(), "origin" => basename($th->getFile()), "line" => $th->getLine()], 500);
+        }   
+    }
+
     public function getBalanceForBudget(Request $request){
 
         /**

@@ -7,4 +7,5 @@ use App\Http\Controllers\BalanceController;
 Route::group(['middleware' => ['protectedRoute']], function(){
   Route::get('/', [BalanceController::class, 'getBalance']);
   Route::get('/budget', [BalanceController::class, 'getBalanceForBudget']);
+  Route::get('/month', [BalanceController::class, 'getMonthBalance']);
 });
