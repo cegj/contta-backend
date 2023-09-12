@@ -1,7 +1,7 @@
 {
   "files.exclude": {
     //     "contta-api/bootstrap": true,
-    "contta-api/config": true
+    // "contta-api/config": true
     //     "contta-api/lang": true,
     //     "contta-api/storage": true,
     //     "contta-api/tests": true,
