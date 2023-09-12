@@ -233,6 +233,7 @@ class TransactionController extends Controller
             ->when($hideExpected, function($q){
                 return $q->where('preview', 0);})                        
             ->orderBy($typeOfDate, 'asc')
+            ->orderBy('transaction_date', 'asc')
             ->get();
 
             return response()->json(["message" => "Transações obtidas de {$from} até {$to}", 'transactions' => $transactions], 200);
